@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane id="AnchorPane" prefHeight="730.0" prefWidth="1000" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.sia.controller.UtamaController"> 
+    <children>
+        <SplitPane dividerPositions="0.004195804195804196" layoutY="-3.0" orientation="VERTICAL" prefHeight="730.0" prefWidth="1000.0">
+            <items>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="10.0" prefWidth="998.0" />
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="649.0" prefWidth="998.0">
+                    <children>
+                        <SplitPane dividerPositions="0.2399598393574297" prefHeight="717.0" prefWidth="998.0" AnchorPane.bottomAnchor="-39.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                            <items>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="666.0" prefWidth="260.0">
+                                    <children> 
+                                        <Button fx:id="loadFileXml" layoutX="30.0" layoutY="45.0" mnemonicParsing="false" onAction="#loadFileXml" prefHeight="25.0" prefWidth="178.0" text="Pilih File" />
+                                        <ListView fx:id="listview" layoutX="19.0" layoutY="95.0" prefHeight="554.0" prefWidth="200.0" />
+                                    </children>
+                                </AnchorPane>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="687.0" prefWidth="730.0">
+                                    <children>
+                              <GridPane layoutX="11.0" layoutY="8.0" prefHeight="218.0" prefWidth="612.0">
+                                <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="280.0" minWidth="10.0" prefWidth="149.0" />
+                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="463.0" minWidth="0.0" prefWidth="463.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <Label text="Kode dan Nama Proses" GridPane.rowIndex="2" />
+                                    <Label text="Aktivitas" GridPane.rowIndex="3" />
+                                    <Label text="Relasi" GridPane.rowIndex="5" />
+                                    <Label text="Attribut" GridPane.rowIndex="6" />
+                                    <TextField fx:id="tfAktivitas" promptText="aktivitas" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                    <TextField fx:id="tfRelasi" promptText="relasi" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                                    <GridPane GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                      <columnConstraints>
+                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="245.0" minWidth="10.0" prefWidth="143.0" />
+                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="325.0" minWidth="10.0" prefWidth="247.0" />
+                                      </columnConstraints>
+                                      <rowConstraints>
+                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                      </rowConstraints>
+                                       <children>
+                                          <TextField fx:id="tfKode" promptText="kode" />
+                                          <TextField fx:id="tfNamaProses" prefHeight="25.0" prefWidth="293.0" promptText="nama process" GridPane.columnIndex="1" />
+                                       </children>
+                                    </GridPane>
+                                    <Label text="Nama Dokumen" GridPane.rowIndex="1" />
+                                    <TextField fx:id="tfDokumen" promptText="nama dokumen" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                    <Label text="Aktor" GridPane.rowIndex="4" />
+                                    <TextField fx:id="tfAktor" promptText="aktor" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                    <Label text="Kode Data Dicitionary" />
+                                    <TextField fx:id="tfKodeDataDictionary" promptText="kode data dictionary" GridPane.columnIndex="1" />
+                                 </children>
+                              </GridPane>
+                                        <TableView fx:id="tableViewDD" layoutX="10.0" layoutY="220.0" prefHeight="284.0" prefWidth="735.0" AnchorPane.bottomAnchor="255.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="9.0" AnchorPane.topAnchor="220.0">
+                                            <columns>
+                                                <TableColumn fx:id="field" prefWidth="121.0" text="Field"> 
+                
+                                                </TableColumn>
+                                                <TableColumn fx:id="alias" prefWidth="121.0" text="Alias"> 
+                                    
+                                                </TableColumn>
+                                                <TableColumn fx:id="dataType" prefWidth="129.0" text="Data Type"> 
+                                    
+                                                </TableColumn>
+                                                <TableColumn fx:id="length" prefWidth="68.0" text="Length"> 
+                                    
+                                                </TableColumn>
+                                                <TableColumn fx:id="description" prefWidth="225.0" text="Description"> 
+                                    
+                                                </TableColumn>
+                                            </columns>
+                                        </TableView>
+                                          <Button fx:id="btnTambah" alignment="CENTER" layoutX="703.0" layoutY="506.0" mnemonicParsing="false" onAction="#addUpdateAtrributes" prefHeight="36.0" prefWidth="40.0" textOverrun="CLIP" />
+                              <TextField fx:id="tfField" layoutX="14.0" layoutY="507.0" prefHeight="25.0" prefWidth="117.0" promptText="field..." />
+                              <TextField fx:id="tfAlias" layoutX="139.0" layoutY="507.0" prefHeight="25.0" prefWidth="117.0" promptText="alias..." />
+                              <ComboBox fx:id="cbDataType" layoutX="260.0" layoutY="507.0" prefHeight="25.0" prefWidth="117.0" />
+                              <TextField fx:id="tfLength" layoutX="379.0" layoutY="507.0" prefHeight="25.0" prefWidth="93.0" promptText="length" />
+                              <TextArea fx:id="taDescription" layoutX="474.0" layoutY="507.0" prefHeight="70.0" prefWidth="225.0" promptText="description..." />
+                              <Button fx:id="btnDelete" layoutX="705.0" layoutY="181.0" mnemonicParsing="false" onAction="#deleteData" prefHeight="36.0" prefWidth="40.0" />
+                              <Button fx:id="btnReset" layoutX="703.0" layoutY="543.0" mnemonicParsing="false" onAction="#resetForm" prefHeight="36.0" prefWidth="40.0" />
+                              <TextArea fx:id="tfDeskripsi" layoutX="14.0" layoutY="582.0" prefHeight="70.0" prefWidth="704.0" />
+                              <Button fx:id="btnGenerate" layoutX="14.0" layoutY="655.0" mnemonicParsing="false" onAction="#generateToJSON" prefHeight="36.0" prefWidth="704.0" text="Generate Data Dictionary into JSON" />
+                              <Label layoutX="16.0" layoutY="559.0" text="Deskripsi">
+                                 <font>
+                                    <Font name="System Bold" size="12.0" />
+                                 </font>
+                              </Label>
+                                    </children>
+                                </AnchorPane>
+                            </items>
+                        </SplitPane>
+                    </children>
+                </AnchorPane>
+            </items>
+        </SplitPane> 
+    </children> 
+</AnchorPane>
