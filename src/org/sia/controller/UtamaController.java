@@ -217,8 +217,8 @@ public class UtamaController implements Initializable {
                             if (eElementParent.getNodeName().equalsIgnoreCase("DataObject")) {
                                 mapDataObjectCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(eElement.getAttribute("YCoordinate")));
                                 mapDataObject.put(id, name);
-                                listDataObject.add(name);      
-                                String codeDD = "DD-"+ splits[0] +"-"+ String.format("%03d", num);
+                                listDataObject.add(name);
+                                String codeDD = "DD-" + splits[0] + "-" + String.format("%03d", num);
                                 mapCodeDD.put(name, codeDD);
                                 num++;
                             }
@@ -322,7 +322,7 @@ public class UtamaController implements Initializable {
                 }
             }
         }
-        
+
         mapDataObjectActivity.clear();
         for (Map.Entry<String, String> entry : mapTargetSource.entrySet()) {
             for (Map.Entry<String, String> entry2 : mapActivity.entrySet()) {
@@ -455,6 +455,7 @@ public class UtamaController implements Initializable {
                 }
             }
         }
+
     }
 
     private void selectListViewItem() {
@@ -471,7 +472,9 @@ public class UtamaController implements Initializable {
                         tfAktivitas.setText(mapDataObjectActivity.get(newValue));
                         tfAktor.setText(mapActor.get(newValue));
                         tfKodeDataDictionary.setText(mapCodeDD.get(newValue));
-                        loadAttributesBaseOnDataObject(newValue);
+                        if (newValue != null) {
+                            loadAttributesBaseOnDataObject(newValue);
+                        }
                     }
                 });
         clearTable();
@@ -788,12 +791,10 @@ public class UtamaController implements Initializable {
     }
 
     private void clearTable() {
-        tableViewDD.getItems().removeAll(items);
+        tableViewDD.getItems().clear();
     }
 
     private void loadTable() {
-        tableViewDD.refresh();
-        tableViewDD.sort();
         tableViewDD.setItems(items);
     }
 
