@@ -7,9 +7,6 @@ import java.util.List;
 
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.UnderlinePatterns;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
@@ -139,7 +136,7 @@ public class UtamaController implements Initializable {
     private String path = "";
     private String kodeProses = "";
     private String namaProses = "";
-    
+
     public UtamaController() {
         tableViewDD = new TableView<>();
         attributeDao = new AttributeDaoImplHibernate();
@@ -160,7 +157,7 @@ public class UtamaController implements Initializable {
                 mapTargetSource.clear();
                 listview.getItems().clear();
                 listDataObject.clear();
-                path = selectedFile.getAbsolutePath().replace(selectedFile.getName(),"");
+                path = selectedFile.getAbsolutePath().replace(selectedFile.getName(), "");
                 String splits[] = selectedFile.getName().split(".xpdl");
                 tfKode.setText(splits[0]);
                 kodeProses = splits[0];
@@ -363,14 +360,20 @@ public class UtamaController implements Initializable {
 
     private void msWordGenerate(int id) throws Exception {
         XWPFDocument document = new XWPFDocument();
-        FileOutputStream out = new FileOutputStream(new File("createparagraph.docx"));
+        FileOutputStream out = new FileOutputStream(new File(path + tfKodeDataDictionary.getText() + ".docx"));
+
         DataDictonary dataDictionary = dataDictionaryDao.getAttribute(id);
+
         XWPFParagraph paragraph = document.createParagraph();
         XWPFRun run = paragraph.createRun();
         run.addBreak();
         run.setText("Kode Data Dictionary");
         run.addTab();
         run.setText(": " + dataDictionary.getKodeDataDictionary());
+        run.addBreak();
+        run.setText("Nama Dokumen");
+        run.addTab();
+        run.setText(": " + dataDictionary.getDokumentName());
         run.addBreak();
         run.setText("Kode Proses");
         run.addTab();
@@ -404,20 +407,10 @@ public class UtamaController implements Initializable {
         run.addTab();
         run.addTab();
         run.setText(":");
-        run.addBreak();
-        run.setText("Deskripsi");
-        run.addTab();
-        run.addTab();
-        run.setText(": " + dataDictionary.getDescription());
-        run.addBreak();
-
-        paragraph.setBorderBottom(Borders.BASIC_BLACK_DASHES);
-        paragraph.setBorderLeft(Borders.BASIC_BLACK_DASHES);
-        paragraph.setBorderRight(Borders.BASIC_BLACK_DASHES);
-        paragraph.setBorderTop(Borders.BASIC_BLACK_DASHES);
 
         XWPFTable table = document.createTable();
-
+        table.setWidth(500);
+ 
         XWPFTableRow tableRowOne = table.getRow(0);
         tableRowOne.getCell(0).setText("Field");
         tableRowOne.addNewTableCell().setText("Alias");
@@ -427,21 +420,29 @@ public class UtamaController implements Initializable {
 
         for (DataDictionaryAttribute allDataDictionaryAttribute : dataDictonaryAttibuteDao.getAllDataDictionaryAttributes()) {
             if (allDataDictionaryAttribute.getDataDictionaryId() == id) {
-                XWPFTableRow tableRowTwo = table.createRow();
-                tableRowTwo.getCell(0).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getField());
-                tableRowTwo.getCell(1).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getAlias());
-                tableRowTwo.getCell(2).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getDataType());
-                tableRowTwo.getCell(3).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getLength());
-                tableRowTwo.getCell(4).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getDescription());
+                XWPFTableRow tableRows = table.createRow();
+                tableRows.getCell(0).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getField());
+                tableRows.getCell(1).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getAlias());
+                tableRows.getCell(2).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getDataType());
+                tableRows.getCell(3).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getLength());
+                tableRows.getCell(4).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getDescription());
             }
-
         }
-
+        
         run.setText(table.getText());
+
+        XWPFParagraph paragraph2 = document.createParagraph();
+        XWPFRun run2 = paragraph2.createRun();
+
+        run2.setText("Deskripsi");
+        run2.addTab();
+        run2.addTab();
+        run2.setText(": " + dataDictionary.getDescription());
+        run2.addBreak();
 
         document.write(out);
         out.close();
-        System.out.println("createparagraph.docx written successfully");
+        System.out.println("document written successfully");
     }
 
     private void loadAttributesBaseOnDataObject(String newValue) {
@@ -731,6 +732,8 @@ public class UtamaController implements Initializable {
             tfAktor.clear();
             tfKode.clear();
             tfKodeDataDictionary.clear();
+            tfNamaProses.clear();
+            tfDokumen.clear();
 
             Alert test = new Alert(Alert.AlertType.INFORMATION);
             test.setTitle("Notification");
@@ -817,13 +820,13 @@ public class UtamaController implements Initializable {
         tableViewDD.setItems(items);
     }
 
-    private void clearAttributeForm(){
+    private void clearAttributeForm() {
         tfField.clear();
         tfAlias.clear();
         tfLength.clear();
         tfDeskripsi.clear();
-    }       
-    
+    }
+
     private void selectComboBoxItem() {
         cbDataType.getSelectionModel().selectedItemProperty()
                 .addListener(new ChangeListener<String>() {
