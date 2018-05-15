@@ -116,6 +116,7 @@ public class UtamaController implements Initializable {
     ObservableList<Attribute> storedItems = FXCollections.observableArrayList();
     ArrayList<String> listDataObject = new ArrayList();
 
+    Map<String, String> mapPathFile = new HashMap<>();
     Map<String, String> mapCodeDD = new HashMap<>();
     Map<String, String> mapDataObject = new HashMap<>();
     Map<String, String> mapActivity = new HashMap<>();
@@ -151,10 +152,12 @@ public class UtamaController implements Initializable {
             fc.getExtensionFilters().addAll(new ExtensionFilter("xml file", "*.xpdl"));
             File selectedFile = fc.showOpenDialog(null);
             if (selectedFile != null) {
-
+                clearTable();
+                clearAttributeForm();
                 mapTargetSource.clear();
                 listview.getItems().clear();
                 listDataObject.clear();
+                String path = selectedFile.getAbsolutePath().replace(selectedFile.getName(),"");
                 String splits[] = selectedFile.getName().split(".xpdl");
                 tfKode.setText(splits[0]);
                 DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -438,20 +441,22 @@ public class UtamaController implements Initializable {
     }
 
     private void loadAttributesBaseOnDataObject(String newValue) {
-        items.clear();
-        String[] split = mapDeskripsi.get(newValue).split("#");
-        for (int i = 0; i < split.length; i++) {
-            if (i == 0) {
-            } else {
-                if (mapStoredAttributes.get(split[i]) != null) {
-                    System.out.println(mapStoredAttributes.get(split[i]));
-                    if (split[i].equalsIgnoreCase(attributeDao.getAttribute(mapStoredAttributes.get(split[i])).getField())) {
-                        System.out.println(split[i] + " : " + attributeDao.getAttribute(mapStoredAttributes.get(split[i])).getField());
-                        items.add(attributeDao.getAttribute(mapStoredAttributes.get(split[i])));
-                    }
+        if (newValue != null) {
+            items.clear();
+            String[] split = mapDeskripsi.get(newValue).split("#");
+            for (int i = 0; i < split.length; i++) {
+                if (i == 0) {
                 } else {
-                    items.add(new Attribute(
-                            attributeDao.getAllAttributes().size() + 1, split[i], "", "", "", ""));
+                    if (mapStoredAttributes.get(split[i]) != null) {
+                        System.out.println(mapStoredAttributes.get(split[i]));
+                        if (split[i].equalsIgnoreCase(attributeDao.getAttribute(mapStoredAttributes.get(split[i])).getField())) {
+                            System.out.println(split[i] + " : " + attributeDao.getAttribute(mapStoredAttributes.get(split[i])).getField());
+                            items.add(attributeDao.getAttribute(mapStoredAttributes.get(split[i])));
+                        }
+                    } else {
+                        items.add(new Attribute(
+                                attributeDao.getAllAttributes().size() + 1, split[i], "", "", "", ""));
+                    }
                 }
             }
         }
@@ -459,9 +464,11 @@ public class UtamaController implements Initializable {
     }
 
     private void selectListViewItem() {
+        clearTable();
+        data = null;
         tableViewDD.getSelectionModel().setCellSelectionEnabled(false);
         data = null;
-        cellValue = "";
+        cellValue = null;
         reset();
         listview.getSelectionModel().selectedItemProperty()
                 .addListener(new ChangeListener<String>() {
@@ -490,16 +497,20 @@ public class UtamaController implements Initializable {
                 TablePosition tablePosition = (TablePosition) selectedCells.get(0);
                 Object val = tablePosition.getTableColumn().getCellData(tablePosition.getRow());
                 cellValue = (String) val;
-                for (Attribute item : items) {
-                    if (cellValue.equalsIgnoreCase(item.getField())) {
-                        tfField.setText(item.getField());
-                        tfAlias.setText(item.getAlias());
-                        cbDataType.setValue(item.getDataType());
-                        tfLength.setText(item.getLength());
-                        taDescription.setText(item.getDescription());
-                        data = new Attribute(item.getId(), item.getField(), item.getDataType(), item.getLength(),
-                                item.getDescription(), item.getAlias());
+                System.out.println(cellValue);
+                if (cellValue != null) {
+                    for (Attribute item : items) {
+                        if (cellValue.equalsIgnoreCase(item.getField())) {
+                            tfField.setText(item.getField());
+                            tfAlias.setText(item.getAlias());
+                            cbDataType.setValue(item.getDataType());
+                            tfLength.setText(item.getLength());
+                            taDescription.setText(item.getDescription());
+                            data = new Attribute(item.getId(), item.getField(), item.getDataType(), item.getLength(),
+                                    item.getDescription(), item.getAlias());
+                        }
                     }
+                    cellValue = null;                    
                 }
             }
         });
@@ -514,9 +525,9 @@ public class UtamaController implements Initializable {
         if (tfLength.getText().equalsIgnoreCase("")) {
             errors.add("Kolom length tidak boleh kosong");
         }
-//        if (taDescription.getText().equalsIgnoreCase("")) {
-//            errors.add("Kolom deskripsi tidak boleh kosong");
-//        }
+        if (taDescription.getText().equalsIgnoreCase("")) {
+            errors.add("Kolom deskripsi tidak boleh kosong");
+        }
         if (errors.size() > 0) {
             Alert test = new Alert(Alert.AlertType.WARNING);
             test.setTitle("Notification");
@@ -535,7 +546,6 @@ public class UtamaController implements Initializable {
                     for (Attribute item : items) {
                         if (item.getField().equalsIgnoreCase(cellValue)) {
                             try {
-                                System.out.println("==yang uda ada");
                                 items.get(id).setField(tfField.getText());
                                 items.get(id).setDataType(cbDataType.getValue().toString());
                                 items.get(id).setDescription(taDescription.getText());
@@ -551,7 +561,6 @@ public class UtamaController implements Initializable {
                         id++;
                     }
                 } else {
-                    System.out.println("==baru");
                     items.add(new Attribute(
                             items.size() + 1,
                             tfField.getText(),
@@ -721,7 +730,7 @@ public class UtamaController implements Initializable {
             test.showAndWait();
             clearTable();
 //            listview.getItems().remove(tfDokumen.getText());
-            cellValue = "";
+            cellValue = null;
         }
     }
 
@@ -762,7 +771,7 @@ public class UtamaController implements Initializable {
 
     @FXML
     private void deleteData() {
-        if (cellValue.equalsIgnoreCase("")) {
+        if (cellValue.equalsIgnoreCase("") || cellValue == null) {
         } else {
             int id = 0;
             for (Attribute item : items) {
@@ -798,6 +807,13 @@ public class UtamaController implements Initializable {
         tableViewDD.setItems(items);
     }
 
+    private void clearAttributeForm()
+    {
+        tfField.clear();
+        tfAlias.clear();
+        tfLength.clear();
+        tfDeskripsi.clear();
+    }        
     private void selectComboBoxItem() {
         cbDataType.getSelectionModel().selectedItemProperty()
                 .addListener(new ChangeListener<String>() {
