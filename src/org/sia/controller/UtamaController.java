@@ -116,6 +116,7 @@ public class UtamaController implements Initializable {
     ObservableList<Attribute> storedItems = FXCollections.observableArrayList();
     ArrayList<String> listDataObject = new ArrayList();
 
+    Map<String, String> mapCodeDD = new HashMap<>();
     Map<String, String> mapDataObject = new HashMap<>();
     Map<String, String> mapActivity = new HashMap<>();
     Map<String, String> mapTargetSource = new HashMap<>();
@@ -150,7 +151,7 @@ public class UtamaController implements Initializable {
             fc.getExtensionFilters().addAll(new ExtensionFilter("xml file", "*.xpdl"));
             File selectedFile = fc.showOpenDialog(null);
             if (selectedFile != null) {
-                
+
                 mapTargetSource.clear();
                 listview.getItems().clear();
                 listDataObject.clear();
@@ -174,106 +175,107 @@ public class UtamaController implements Initializable {
                         vendorString = eElement.getTextContent();
                     }
                 }
-                if(vendorString.equalsIgnoreCase("Bizagi Process Modeler."))
-                {
-                for (int temp = 0; temp < nListAssociation.getLength(); temp++) {
-                    Node nNode = nListAssociation.item(temp);
-                    String target, source;
-                    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-                        Element eElement = (Element) nNode;
-                        target = eElement.getAttribute("Target");
-                        source = eElement.getAttribute("Source");
-                        mapTargetSource.put(source, target);
-                    }
-                }
-                mapActivity.clear();
-                for (int temp = 0; temp < nListActivity.getLength(); temp++) {
-                    Node nNode = nListActivity.item(temp);
-                    String name, id;
-                    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-                        Element eElement = (Element) nNode;
-                        name = eElement.getAttribute("Name");
-                        id = eElement.getAttribute("Id");
-                        mapActivity.put(id, name);
-                    }
-                }
-
-                mapDataObject.clear();
-                mapDataObjectCoordinate.clear();
-                mapActorCoordinate.clear();
-                listDataObject.clear();
-                for (int temp = 0; temp < nListCoordinates.getLength(); temp++) {
-                    Node nNode = nListCoordinates.item(temp);
-                    String name, id;
-                    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-                        Element eElement = (Element) nNode;
-                        Element eElementParent = (Element) eElement.getParentNode().getParentNode().getParentNode();
-                        name = eElementParent.getAttribute("Name");
-                        id = eElementParent.getAttribute("Id");
-                        if (eElementParent.getNodeName().equalsIgnoreCase("lane")) {
-                            mapActorCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(eElement.getAttribute("YCoordinate")));
-                        }
-                        if (eElementParent.getNodeName().equalsIgnoreCase("DataObject")) {
-                            mapDataObjectCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(eElement.getAttribute("YCoordinate")));
-                            mapDataObject.put(id, name);
-                            listDataObject.add(name);
+                if (vendorString.equalsIgnoreCase("Bizagi Process Modeler.")) {
+                    for (int temp = 0; temp < nListAssociation.getLength(); temp++) {
+                        Node nNode = nListAssociation.item(temp);
+                        String target, source;
+                        if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                            Element eElement = (Element) nNode;
+                            target = eElement.getAttribute("Target");
+                            source = eElement.getAttribute("Source");
+                            mapTargetSource.put(source, target);
                         }
                     }
-                }
+                    mapActivity.clear();
+                    for (int temp = 0; temp < nListActivity.getLength(); temp++) {
+                        Node nNode = nListActivity.item(temp);
+                        String name, id;
+                        if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                            Element eElement = (Element) nNode;
+                            name = eElement.getAttribute("Name");
+                            id = eElement.getAttribute("Id");
+                            mapActivity.put(id, name);
+                        }
+                    }
 
-                int flag = 0;
-                for (int temp = 0; temp < nListCoordinates.getLength(); temp++) {
-                    Node nNode = nListCoordinates.item(temp);
-                    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-                        Element eElement = (Element) nNode;
-                        Element eElementParent = (Element) eElement.getParentNode().getParentNode().getParentNode();
-                        if (eElementParent.getNodeName().equalsIgnoreCase("Pool")) {
-                            flag++;
-                            if (flag == 2) {
-                                tfNamaProses.setText(eElementParent.getAttribute("Name"));
-                            }
-                            if (flag > 2) {
+                    mapDataObject.clear();
+                    mapDataObjectCoordinate.clear();
+                    mapActorCoordinate.clear();
+                    listDataObject.clear();
+                    int num = 1;
+                    for (int temp = 0; temp < nListCoordinates.getLength(); temp++) {
+                        Node nNode = nListCoordinates.item(temp);
+                        String name, id;
+                        if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                            Element eElement = (Element) nNode;
+                            Element eElementParent = (Element) eElement.getParentNode().getParentNode().getParentNode();
+                            name = eElementParent.getAttribute("Name");
+                            id = eElementParent.getAttribute("Id");
+                            if (eElementParent.getNodeName().equalsIgnoreCase("lane")) {
                                 mapActorCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(eElement.getAttribute("YCoordinate")));
                             }
+                            if (eElementParent.getNodeName().equalsIgnoreCase("DataObject")) {
+                                mapDataObjectCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(eElement.getAttribute("YCoordinate")));
+                                mapDataObject.put(id, name);
+                                listDataObject.add(name);      
+                                String codeDD = "DD-"+ splits[0] +"-"+ String.format("%03d", num);
+                                mapCodeDD.put(name, codeDD);
+                                num++;
+                            }
                         }
-
                     }
-                }
 
-                mapDeskripsi.clear();
-                for (int temp = 0; temp < nListDocumentation.getLength(); temp++) {
-                    Node nNode = nListDocumentation.item(temp);
-                    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-                        Element eElement = (Element) nNode;
-                        Element eElement2 = (Element) eElement.getParentNode().getParentNode();
-                        if (eElement2.getAttribute("Name").equalsIgnoreCase(mapDataObject.get(eElement2.getAttribute("Id")))) {
-                            String string = eElement.getTextContent();
-                            String[] split = string.split("#");
-
-                            String atributes = "";
-                            for (int j = 0; j < split.length; j++) {
-                                if (j == 0 || j == 1 || j > split.length - 2) {
-                                } else {
-                                    atributes = atributes + "#" + split[j];
+                    int flag = 0;
+                    for (int temp = 0; temp < nListCoordinates.getLength(); temp++) {
+                        Node nNode = nListCoordinates.item(temp);
+                        if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                            Element eElement = (Element) nNode;
+                            Element eElementParent = (Element) eElement.getParentNode().getParentNode().getParentNode();
+                            if (eElementParent.getNodeName().equalsIgnoreCase("Pool")) {
+                                flag++;
+                                if (flag == 2) {
+                                    tfNamaProses.setText(eElementParent.getAttribute("Name"));
                                 }
-                                mapDeskripsi.put(eElement2.getAttribute("Name"), atributes);
+                                if (flag > 2) {
+                                    mapActorCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(eElement.getAttribute("YCoordinate")));
+                                }
+                            }
+
+                        }
+                    }
+
+                    mapDeskripsi.clear();
+                    for (int temp = 0; temp < nListDocumentation.getLength(); temp++) {
+                        Node nNode = nListDocumentation.item(temp);
+                        if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                            Element eElement = (Element) nNode;
+                            Element eElement2 = (Element) eElement.getParentNode().getParentNode();
+                            if (eElement2.getAttribute("Name").equalsIgnoreCase(mapDataObject.get(eElement2.getAttribute("Id")))) {
+                                String string = eElement.getTextContent();
+                                String[] split = string.split("#");
+
+                                String atributes = "";
+                                for (int j = 0; j < split.length; j++) {
+                                    if (j == 0 || j == 1 || j > split.length - 2) {
+                                    } else {
+                                        atributes = atributes + "#" + split[j];
+                                    }
+                                    mapDeskripsi.put(eElement2.getAttribute("Name"), atributes);
+                                }
                             }
                         }
                     }
-                }
 
-                loadListView(listDataObject);
-                
-                            }
-            else
-            {
-                Alert test = new Alert(Alert.AlertType.WARNING);
-                test.setTitle("Notification");
-                test.setHeaderText("Gagal digenerate!");
-                String message = "File XML tidak sesuai!";
-                test.setContentText(message);
-                test.showAndWait();
-            }
+                    loadListView(listDataObject);
+
+                } else {
+                    Alert test = new Alert(Alert.AlertType.WARNING);
+                    test.setTitle("Notification");
+                    test.setHeaderText("Gagal digenerate!");
+                    String message = "File XML tidak sesuai!";
+                    test.setContentText(message);
+                    test.showAndWait();
+                }
 
             } else {
                 System.out.println("file is not valid");
@@ -320,6 +322,7 @@ public class UtamaController implements Initializable {
                 }
             }
         }
+        
         mapDataObjectActivity.clear();
         for (Map.Entry<String, String> entry : mapTargetSource.entrySet()) {
             for (Map.Entry<String, String> entry2 : mapActivity.entrySet()) {
@@ -416,8 +419,7 @@ public class UtamaController implements Initializable {
         tableRowOne.addNewTableCell().setText("Description");
 
         for (DataDictionaryAttribute allDataDictionaryAttribute : dataDictonaryAttibuteDao.getAllDataDictionaryAttributes()) {
-            if(allDataDictionaryAttribute.getDataDictionaryId() == id)
-            {
+            if (allDataDictionaryAttribute.getDataDictionaryId() == id) {
                 XWPFTableRow tableRowTwo = table.createRow();
                 tableRowTwo.getCell(0).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getField());
                 tableRowTwo.getCell(1).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getAlias());
@@ -425,9 +427,8 @@ public class UtamaController implements Initializable {
                 tableRowTwo.getCell(3).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getLength());
                 tableRowTwo.getCell(4).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getDescription());
             }
-            
-        }
 
+        }
 
         run.setText(table.getText());
 
@@ -469,6 +470,7 @@ public class UtamaController implements Initializable {
                         tfDokumen.setText(newValue);
                         tfAktivitas.setText(mapDataObjectActivity.get(newValue));
                         tfAktor.setText(mapActor.get(newValue));
+                        tfKodeDataDictionary.setText(mapCodeDD.get(newValue));
                         loadAttributesBaseOnDataObject(newValue);
                     }
                 });
@@ -581,53 +583,53 @@ public class UtamaController implements Initializable {
     }
 
     private void write() throws Exception {
-            dataDictionaryDao.saveDataDictonary(new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(),
-                    tfKode.getText(), tfNamaProses.getText(), tfAktivitas.getText(),
-                    tfAktor.getText(), tfRelasi.getText(), tfDeskripsi.getText()));
+        dataDictionaryDao.saveDataDictonary(new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(),
+                tfKode.getText(), tfNamaProses.getText(), tfAktivitas.getText(),
+                tfAktor.getText(), tfRelasi.getText(), tfDeskripsi.getText()));
 //=======================================================================================================        
-            ArrayList<Attribute> attributes = (ArrayList<Attribute>) attributeDao.getAllAttributes();
-            items.forEach((item) -> {
-                int flag = 0;
-                for (Attribute attribute : attributes) {
-                    if (attribute.getField().equalsIgnoreCase(item.getField())) {
-                        break;
-                    } else {
-                        flag++;
-                    }
-                    if (flag == attributes.size()) {
-                        item.setId(0);
-                        attributeDao.saveAttribute(item);
-                    }
+        ArrayList<Attribute> attributes = (ArrayList<Attribute>) attributeDao.getAllAttributes();
+        items.forEach((item) -> {
+            int flag = 0;
+            for (Attribute attribute : attributes) {
+                if (attribute.getField().equalsIgnoreCase(item.getField())) {
+                    break;
+                } else {
+                    flag++;
                 }
-                flag = 0;
-            });
-//=======================================================================================================        
-            int idDataDictionary = 0;
-            for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
-                if (dataDictonary.getProcessName().equalsIgnoreCase(tfNamaProses.getText())) {
-                    idDataDictionary = dataDictonary.getId();
+                if (flag == attributes.size()) {
+                    item.setId(0);
+                    attributeDao.saveAttribute(item);
                 }
             }
-            int id = idDataDictionary;
-            msWordGenerate(id);
-            ArrayList<Attribute> currentAtributes = (ArrayList<Attribute>) attributeDao.getAllAttributes();
-            items.forEach((item) -> {
-                for (Attribute attribute : currentAtributes) {
-                    if (item.getField().equalsIgnoreCase(attribute.getField())) {
-                        dataDictonaryAttibuteDao.saveDataDictionaryAttribute(
-                                new DataDictionaryAttribute(0, id, attribute.getId()));
-                    }
+            flag = 0;
+        });
+//=======================================================================================================        
+        int idDataDictionary = 0;
+        for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
+            if (dataDictonary.getProcessName().equalsIgnoreCase(tfNamaProses.getText())) {
+                idDataDictionary = dataDictonary.getId();
+            }
+        }
+        int id = idDataDictionary;
+        msWordGenerate(id);
+        ArrayList<Attribute> currentAtributes = (ArrayList<Attribute>) attributeDao.getAllAttributes();
+        items.forEach((item) -> {
+            for (Attribute attribute : currentAtributes) {
+                if (item.getField().equalsIgnoreCase(attribute.getField())) {
+                    dataDictonaryAttibuteDao.saveDataDictionaryAttribute(
+                            new DataDictionaryAttribute(0, id, attribute.getId()));
                 }
-            });
+            }
+        });
 //=======================================================================================================                
-            try {
-                msWordGenerate(id);
-            } catch (Exception ex) {
-                Logger.getLogger(UtamaController.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        try {
+            msWordGenerate(id);
+        } catch (Exception ex) {
+            Logger.getLogger(UtamaController.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
-            System.out.println("Sukses fungsi write!");
-        
+        System.out.println("Sukses fungsi write!");
+
     }
 
     @FXML
@@ -733,7 +735,6 @@ public class UtamaController implements Initializable {
         selectListViewItem();
         selectTableViewItem();
         selectComboBoxItem();
-        tfKodeDataDictionary.setText("DD-BP-DDiak-");
 
         read();
 
