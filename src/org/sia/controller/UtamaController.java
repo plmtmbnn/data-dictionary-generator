@@ -136,7 +136,10 @@ public class UtamaController implements Initializable {
     private final DataDictionaryAttributeDao dataDictonaryAttibuteDao;
 
     private String cellValue = "";
-
+    private String path = "";
+    private String kodeProses = "";
+    private String namaProses = "";
+    
     public UtamaController() {
         tableViewDD = new TableView<>();
         attributeDao = new AttributeDaoImplHibernate();
@@ -157,9 +160,10 @@ public class UtamaController implements Initializable {
                 mapTargetSource.clear();
                 listview.getItems().clear();
                 listDataObject.clear();
-                String path = selectedFile.getAbsolutePath().replace(selectedFile.getName(),"");
+                path = selectedFile.getAbsolutePath().replace(selectedFile.getName(),"");
                 String splits[] = selectedFile.getName().split(".xpdl");
                 tfKode.setText(splits[0]);
+                kodeProses = splits[0];
                 DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
                 DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
                 Document doc = dBuilder.parse(selectedFile.getAbsolutePath());
@@ -237,7 +241,7 @@ public class UtamaController implements Initializable {
                             if (eElementParent.getNodeName().equalsIgnoreCase("Pool")) {
                                 flag++;
                                 if (flag == 2) {
-                                    tfNamaProses.setText(eElementParent.getAttribute("Name"));
+                                    namaProses = eElementParent.getAttribute("Name");
                                 }
                                 if (flag > 2) {
                                     mapActorCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(eElement.getAttribute("YCoordinate")));
@@ -468,7 +472,6 @@ public class UtamaController implements Initializable {
         data = null;
         tableViewDD.getSelectionModel().setCellSelectionEnabled(false);
         data = null;
-        cellValue = null;
         reset();
         listview.getSelectionModel().selectedItemProperty()
                 .addListener(new ChangeListener<String>() {
@@ -479,6 +482,8 @@ public class UtamaController implements Initializable {
                         tfAktivitas.setText(mapDataObjectActivity.get(newValue));
                         tfAktor.setText(mapActor.get(newValue));
                         tfKodeDataDictionary.setText(mapCodeDD.get(newValue));
+                        tfKode.setText(kodeProses);
+                        tfNamaProses.setText(namaProses);
                         if (newValue != null) {
                             loadAttributesBaseOnDataObject(newValue);
                         }
@@ -510,7 +515,6 @@ public class UtamaController implements Initializable {
                                     item.getDescription(), item.getAlias());
                         }
                     }
-                    cellValue = null;                    
                 }
             }
         });
@@ -540,11 +544,14 @@ public class UtamaController implements Initializable {
             test.showAndWait();
         } else {
             if (tfField.getText().equalsIgnoreCase("") || tfLength.getText().equalsIgnoreCase("")) {
+                System.out.println("emg kosong?");
             } else {
                 if (data != null) {
+                    System.out.println("ga null ah");
                     int id = 0;
                     for (Attribute item : items) {
                         if (item.getField().equalsIgnoreCase(cellValue)) {
+                            System.out.println("mudah ada tinggal edit");
                             try {
                                 items.get(id).setField(tfField.getText());
                                 items.get(id).setDataType(cbDataType.getValue().toString());
@@ -561,6 +568,7 @@ public class UtamaController implements Initializable {
                         id++;
                     }
                 } else {
+                    System.out.println("baru");
                     items.add(new Attribute(
                             items.size() + 1,
                             tfField.getText(),
@@ -662,9 +670,9 @@ public class UtamaController implements Initializable {
         if (tfAktor.getText().equalsIgnoreCase("")) {
             errors.add("Kolom Aktor tidak boleh kosong");
         }
-//        if (tfRelasi.getText().equalsIgnoreCase("")) {
-//            errors.add("Kolom relasi tidak boleh kosong");
-//        }
+        if (tfRelasi.getText().equalsIgnoreCase("")) {
+            errors.add("Kolom relasi tidak boleh kosong");
+        }
         if (errors.size() > 0) {
             Alert test = new Alert(Alert.AlertType.WARNING);
             test.setTitle("Notification");
@@ -708,8 +716,7 @@ public class UtamaController implements Initializable {
 
             System.out.print(jsonStringss);
 
-            try (FileWriter file = new FileWriter("d:\\" + tfDokumen.getText() + ".json")) {
-
+            try (FileWriter file = new FileWriter(path + tfKodeDataDictionary.getText() + ".json")) {
                 file.write(jsonStringss);
                 file.flush();
 
@@ -718,11 +725,12 @@ public class UtamaController implements Initializable {
             }
 
             reset();
-            tfKode.clear();
             tfRelasi.clear();
             tfDeskripsi.clear();
             tfAktivitas.clear();
             tfAktor.clear();
+            tfKode.clear();
+            tfKodeDataDictionary.clear();
 
             Alert test = new Alert(Alert.AlertType.INFORMATION);
             test.setTitle("Notification");
@@ -804,16 +812,18 @@ public class UtamaController implements Initializable {
     }
 
     private void loadTable() {
+        tableViewDD.refresh();
+        tableViewDD.sort();
         tableViewDD.setItems(items);
     }
 
-    private void clearAttributeForm()
-    {
+    private void clearAttributeForm(){
         tfField.clear();
         tfAlias.clear();
         tfLength.clear();
         tfDeskripsi.clear();
-    }        
+    }       
+    
     private void selectComboBoxItem() {
         cbDataType.getSelectionModel().selectedItemProperty()
                 .addListener(new ChangeListener<String>() {
