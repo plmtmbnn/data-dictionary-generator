@@ -21,12 +21,13 @@ import org.sia.util.HibernateUtil;
 public class DataDictionaryDaoImplHibernate implements DataDictionaryDao{
 
     @Override
-    public void saveDataDictonary(DataDictonary dataDictonary) {
+    public DataDictonary saveDataDictonary(DataDictonary dataDictonary) {
         Session session = HibernateUtil.getSession();
         session.getTransaction().begin();
         session.save(dataDictonary);
         session.getTransaction().commit();
-        HibernateUtil.closeSession();    
+        HibernateUtil.closeSession();   
+        return dataDictonary;
     }
 
     @Override
@@ -59,8 +60,9 @@ public class DataDictionaryDaoImplHibernate implements DataDictionaryDao{
     }
 
     @Override
-    public void updateDataDictonary(DataDictonary dataDictonary) {
-       for(DataDictonary dd : getAllDataDictonaries())
+    public DataDictonary updateDataDictonary(DataDictonary dataDictonary) {
+       DataDictonary dDictionary = null;
+        for(DataDictonary dd : getAllDataDictonaries())
         {
             if(dataDictonary.getKodeDataDictionary().equalsIgnoreCase(dd.getKodeDataDictionary()))
             {
@@ -69,11 +71,13 @@ public class DataDictionaryDaoImplHibernate implements DataDictionaryDao{
                 dataDictonary.setId(dd.getId());
                 dd = dataDictonary;
                 session.update(dd);
+                dDictionary = dd;
                 session.getTransaction().commit();
                 HibernateUtil.closeSession();
                 break;
             }
         }
+       return dDictionary;
     }
 
     @Override

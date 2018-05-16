@@ -13,10 +13,10 @@ import org.sia.model.DataDictonary;
  * @author Polma E. Tambunan
  */
 public interface DataDictionaryDao {
-    public void saveDataDictonary(DataDictonary dataDictonary);
+    public DataDictonary saveDataDictonary(DataDictonary dataDictonary);
     public DataDictonary getAttribute(int id);
     public List<DataDictonary> getAllDataDictonaries();
     public void deleteDataDictonary(DataDictonary dataDictonary);
-    public void updateDataDictonary(DataDictonary dataDictonary);
+    public DataDictonary updateDataDictonary(DataDictonary dataDictonary);
     public DataDictonary getLastDataDictionary();
 }

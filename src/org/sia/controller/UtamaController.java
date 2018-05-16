@@ -399,9 +399,6 @@ public class UtamaController implements Initializable {
 
             XWPFTable table = document.createTable();
 
-            table.setCellMargins(1, 1, 100, 20);
-            table.setWidth(900);
-
             XWPFTableRow tableRowOne = table.getRow(0);
             tableRowOne.getCell(0).setText("Field");
             tableRowOne.addNewTableCell().setText("Alias");
@@ -440,10 +437,9 @@ public class UtamaController implements Initializable {
         String[] split = mapDeskripsi.get(newValue).split("#");
         if (dataDictionary != null) {
             for (DataDictionaryAttribute dda : dataDictonaryAttibuteDao.getAllDataDictionaryAttributes()) {
-                if(dda.getDataDictionaryId() == dataDictionary.getId())
-                {
+                if (dda.getDataDictionaryId() == dataDictionary.getId()) {
                     items.add(attributeDao.getAttribute(dda.getAttributeId()));
-                }    
+                }
             }
         } else {
             for (int i = 0; i < split.length; i++) {
@@ -625,35 +621,51 @@ public class UtamaController implements Initializable {
     private void write() throws Exception {
 //====================================DATA DICTIONARY======================================================        
         int check = 0;
+        DataDictonary dataDict = new DataDictonary();
         DataDictonary newDataDictonary = new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(),
                 tfKode.getText(), tfNamaProses.getText(), tfAktivitas.getText(),
                 tfAktor.getText(), tfRelasi.getText(), tfDeskripsi.getText());
         for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
             if (dataDictonary.getKodeDataDictionary().equals(tfKodeDataDictionary.getText())) {
                 check++;
-                dataDictionaryDao.updateDataDictonary(newDataDictonary);
+                dataDict = dataDictionaryDao.updateDataDictonary(newDataDictonary);
             }
         }
         if (check != 1) {
-            dataDictionaryDao.saveDataDictonary(newDataDictonary);
+            dataDict = dataDictionaryDao.saveDataDictonary(newDataDictonary);
         }
 //===========================================ATTRIBUTE======================================================        
         ArrayList<Attribute> attributes = (ArrayList<Attribute>) attributeDao.getAllAttributes();
-        items.forEach((item) -> {
-            int flag = 0;
-            for (Attribute attribute : attributes) {
-                if (attribute.getField().equalsIgnoreCase(item.getField())) {
-                    break;
-                } else {
-                    flag++;
+
+        ArrayList<Attribute> listIdAttributes = new ArrayList();
+
+        for (DataDictionaryAttribute dda : dataDictonaryAttibuteDao.getAllDataDictionaryAttributes()) {
+            if (dda.getDataDictionaryId() == dataDict.getId()) {
+                listIdAttributes.add(attributeDao.getAttribute(dda.getAttributeId()));
+            }
+        }
+        if (listIdAttributes.isEmpty()) {
+            items.forEach((item) -> {
+                int flag = 0;
+                for (Attribute attribute : attributes) {
+                    if (attribute.getField().equalsIgnoreCase(item.getField())) {
+                        attributeDao.updateAttribute(item);
+                    } else {
+                        flag++;
+                    }
                 }
                 if (flag == attributes.size()) {
                     item.setId(0);
                     attributeDao.saveAttribute(item);
                 }
-            }
-            flag = 0;
-        });
+                flag = 0;
+            });
+        } else {
+            items.forEach((item) -> {
+                attributeDao.updateAttribute(item);
+            });
+        }
+
 //==========================================DD - A=========================================================        
         int idDataDictionary = 0;
         for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
@@ -662,16 +674,18 @@ public class UtamaController implements Initializable {
             }
         }
         int id = idDataDictionary;
-        msWordGenerate(id);
         ArrayList<Attribute> currentAtributes = (ArrayList<Attribute>) attributeDao.getAllAttributes();
-        items.forEach((item) -> {
-            for (Attribute attribute : currentAtributes) {
-                if (item.getField().equalsIgnoreCase(attribute.getField())) {
-                    dataDictonaryAttibuteDao.saveDataDictionaryAttribute(
-                            new DataDictionaryAttribute(0, id, attribute.getId()));
+        if (listIdAttributes.isEmpty()) {
+            items.forEach((item) -> {
+                for (Attribute attribute : currentAtributes) {
+                    if (item.getField().equalsIgnoreCase(attribute.getField())) {
+                        dataDictonaryAttibuteDao.saveDataDictionaryAttribute(
+                                new DataDictionaryAttribute(0, id, attribute.getId()));
+                    }
                 }
-            }
-        });
+            });
+        }
+
 //==================================================WORD=====================================================                
         try {
             msWordGenerate(id);
