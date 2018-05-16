@@ -588,9 +588,19 @@ public class UtamaController implements Initializable {
     }
 
     private void write() throws Exception {
-        dataDictionaryDao.saveDataDictonary(new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(),
+        int check = 0;
+        for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
+            if(dataDictonary.getKodeDataDictionary().equals(tfKodeDataDictionary.getText()))
+            {
+                check++;
+            }
+        }
+        if(check != 1)
+        {
+            dataDictionaryDao.saveDataDictonary(new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(),
                 tfKode.getText(), tfNamaProses.getText(), tfAktivitas.getText(),
                 tfAktor.getText(), tfRelasi.getText(), tfDeskripsi.getText()));
+        }
 //=======================================================================================================        
         ArrayList<Attribute> attributes = (ArrayList<Attribute>) attributeDao.getAllAttributes();
         items.forEach((item) -> {
@@ -611,7 +621,7 @@ public class UtamaController implements Initializable {
 //=======================================================================================================        
         int idDataDictionary = 0;
         for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
-            if (dataDictonary.getProcessName().equalsIgnoreCase(tfNamaProses.getText())) {
+            if (dataDictonary.getKodeDataDictionary().equalsIgnoreCase(tfKodeDataDictionary.getText())) {
                 idDataDictionary = dataDictonary.getId();
             }
         }
@@ -632,9 +642,7 @@ public class UtamaController implements Initializable {
         } catch (Exception ex) {
             Logger.getLogger(UtamaController.class.getName()).log(Level.SEVERE, null, ex);
         }
-
         System.out.println("Sukses fungsi write!");
-
     }
 
     @FXML
@@ -710,7 +718,6 @@ public class UtamaController implements Initializable {
                 file.write(jsonStringss);
                 file.flush();
             } catch (IOException e) {
-                e.printStackTrace();
             }
 
             reset();
