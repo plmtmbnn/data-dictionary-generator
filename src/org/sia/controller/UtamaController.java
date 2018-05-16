@@ -1,27 +1,7 @@
 package org.sia.controller;
 
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.math.BigInteger;
-import java.util.List;
-
-import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
-import org.apache.poi.xwpf.usermodel.UnderlinePatterns;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTHeight;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTShd;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTString;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTrPr;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTVerticalJc;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.STShd;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.STVerticalJc;
-
-import java.io.FileOutputStream;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import java.io.FileOutputStream;
@@ -79,8 +59,6 @@ import org.sia.model.DataDictonary;
 import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.scene.control.ButtonType;
-import org.apache.poi.xwpf.usermodel.Borders;
 import org.sia.dao.AttributeDao;
 import org.sia.dao.DataDictionaryDao;
 import org.sia.dao.DataDictionaryAttributeDao;
@@ -272,13 +250,6 @@ public class UtamaController implements Initializable {
 
                     loadListView(listDataObject);
 
-                } else {
-                    Alert test = new Alert(Alert.AlertType.WARNING);
-                    test.setTitle("Notification");
-                    test.setHeaderText("Gagal digenerate!");
-                    String message = "File XML tidak sesuai!";
-                    test.setContentText(message);
-                    test.showAndWait();
                 }
 
             } else {
@@ -286,6 +257,12 @@ public class UtamaController implements Initializable {
             }
 
         } catch (Exception e) {
+            Alert test = new Alert(Alert.AlertType.WARNING);
+            test.setTitle("Notification");
+            test.setHeaderText("Gagal digenerate!");
+            String message = "File XML tidak sesuai!";
+            test.setContentText(message);
+            test.showAndWait();
             System.out.println(e.toString());
         }
 
@@ -338,8 +315,8 @@ public class UtamaController implements Initializable {
     }
 
     private void loadListView(ArrayList<String> datas) {
-        datas.forEach((data) -> {
-            listview.getItems().add(data);
+        datas.forEach((newItem) -> {
+            listview.getItems().add(newItem);
         });
     }
 
@@ -353,95 +330,95 @@ public class UtamaController implements Initializable {
             mapStoredAttributes.put(attribute.getField(), attribute.getId());
         }
 
-        for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
+        dataDictionaryDao.getAllDataDictonaries().forEach((dataDictonary) -> {
             mapDataDictionaries.put(dataDictonary.getDokumentName(), dataDictonary.getDokumentName());
-        }
+        });
     }
 
     private void msWordGenerate(int id) throws Exception {
         XWPFDocument document = new XWPFDocument();
-        FileOutputStream out = new FileOutputStream(new File(path + tfKodeDataDictionary.getText() + ".docx"));
-
-        DataDictonary dataDictionary = dataDictionaryDao.getAttribute(id);
-
-        XWPFParagraph paragraph = document.createParagraph();
-        XWPFRun run = paragraph.createRun();
-        run.addBreak();
-        run.setText("Kode Data Dictionary");
-        run.addTab();
-        run.setText(": " + dataDictionary.getKodeDataDictionary());
-        run.addBreak();
-        run.setText("Nama Dokumen");
-        run.addTab();
-        run.setText(": " + dataDictionary.getDokumentName());
-        run.addBreak();
-        run.setText("Kode Proses");
-        run.addTab();
-        run.addTab();
-        run.setText(": " + dataDictionary.getProcessCode());
-        run.addBreak();
-        run.setText("Nama Proses");
-        run.addTab();
-        run.addTab();
-        run.setText(": " + dataDictionary.getProcessName());
-        run.addBreak();
-        run.setText("Aktivitas");
-        run.addTab();
-        run.addTab();
-        run.setText(": " + dataDictionary.getActivity());
-        run.addBreak();
-        run.setText("Aktor");
-        run.addTab();
-        run.addTab();
-        run.addTab();
-        run.setText(": " + dataDictionary.getActor());
-        run.addBreak();
-        run.setText("Relasi");
-        run.addTab();
-        run.addTab();
-        run.addTab();
-        run.setText(": " + dataDictionary.getRelation());
-        run.addBreak();
-        run.setText("Atribut");
-        run.addTab();
-        run.addTab();
-        run.addTab();
-        run.setText(":");
-
-        XWPFTable table = document.createTable();
-        table.setWidth(500);
- 
-        XWPFTableRow tableRowOne = table.getRow(0);
-        tableRowOne.getCell(0).setText("Field");
-        tableRowOne.addNewTableCell().setText("Alias");
-        tableRowOne.addNewTableCell().setText("Data Type");
-        tableRowOne.addNewTableCell().setText("Length");
-        tableRowOne.addNewTableCell().setText("Description");
-
-        for (DataDictionaryAttribute allDataDictionaryAttribute : dataDictonaryAttibuteDao.getAllDataDictionaryAttributes()) {
-            if (allDataDictionaryAttribute.getDataDictionaryId() == id) {
+        try (FileOutputStream out = new FileOutputStream(new File(path + tfKodeDataDictionary.getText() + ".docx"))) {
+            DataDictonary dataDictionary = dataDictionaryDao.getAttribute(id);
+            
+            XWPFParagraph paragraph = document.createParagraph();
+            XWPFRun run = paragraph.createRun();
+            run.addBreak();
+            run.setText("Kode Data Dictionary");
+            run.addTab();
+            run.setText(": " + dataDictionary.getKodeDataDictionary());
+            run.addBreak();
+            run.setText("Nama Dokumen");
+            run.addTab();
+            run.setText(": " + dataDictionary.getDokumentName());
+            run.addBreak();
+            run.setText("Kode Proses");
+            run.addTab();
+            run.addTab();
+            run.setText(": " + dataDictionary.getProcessCode());
+            run.addBreak();
+            run.setText("Nama Proses");
+            run.addTab();
+            run.addTab();
+            run.setText(": " + dataDictionary.getProcessName());
+            run.addBreak();
+            run.setText("Aktivitas");
+            run.addTab();
+            run.addTab();
+            run.setText(": " + dataDictionary.getActivity());
+            run.addBreak();
+            run.setText("Aktor");
+            run.addTab();
+            run.addTab();
+            run.addTab();
+            run.setText(": " + dataDictionary.getActor());
+            run.addBreak();
+            run.setText("Relasi");
+            run.addTab();
+            run.addTab();
+            run.addTab();
+            run.setText(": " + dataDictionary.getRelation());
+            run.addBreak();
+            run.setText("Atribut");
+            run.addTab();
+            run.addTab();
+            run.addTab();
+            run.setText(":");
+            
+            XWPFTable table = document.createTable();
+            
+            table.setCellMargins(1, 1, 100, 20);
+            table.setWidth(900);
+            
+            XWPFTableRow tableRowOne = table.getRow(0);
+            tableRowOne.getCell(0).setText("Field");
+            tableRowOne.addNewTableCell().setText("Alias");
+            tableRowOne.addNewTableCell().setText("Data Type");
+            tableRowOne.addNewTableCell().setText("Length");
+            tableRowOne.addNewTableCell().setText("Description");
+            
+            dataDictonaryAttibuteDao.getAllDataDictionaryAttributes().stream().filter((allDataDictionaryAttribute) -> 
+                    (allDataDictionaryAttribute.getDataDictionaryId() == id)).forEachOrdered((allDataDictionaryAttribute) -> {
                 XWPFTableRow tableRows = table.createRow();
                 tableRows.getCell(0).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getField());
                 tableRows.getCell(1).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getAlias());
                 tableRows.getCell(2).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getDataType());
                 tableRows.getCell(3).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getLength());
                 tableRows.getCell(4).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getDescription());
-            }
+            });
+            
+            run.setText(table.getText());
+            
+            XWPFParagraph paragraph2 = document.createParagraph();
+            XWPFRun run2 = paragraph2.createRun();
+            
+            run2.setText("Deskripsi");
+            run2.addTab();
+            run2.addTab();
+            run2.setText(": " + dataDictionary.getDescription());
+            run2.addBreak();
+            
+            document.write(out);
         }
-        
-        run.setText(table.getText());
-
-        XWPFParagraph paragraph2 = document.createParagraph();
-        XWPFRun run2 = paragraph2.createRun();
-
-        run2.setText("Deskripsi");
-        run2.addTab();
-        run2.addTab();
-        run2.setText(": " + dataDictionary.getDescription());
-        run2.addBreak();
-
-        document.write(out);
-        out.close();
         System.out.println("document written successfully");
     }
 
@@ -530,13 +507,14 @@ public class UtamaController implements Initializable {
         if (tfLength.getText().equalsIgnoreCase("")) {
             errors.add("Kolom length tidak boleh kosong");
         }
-        if (taDescription.getText().equalsIgnoreCase("")) {
-            errors.add("Kolom deskripsi tidak boleh kosong");
+        if (!tfLength.getText().matches("\\d*")) {
+            errors.add("Kolom length harus integer!");
         }
+
         if (errors.size() > 0) {
             Alert test = new Alert(Alert.AlertType.WARNING);
             test.setTitle("Notification");
-            test.setHeaderText("Gagal digenerate!");
+            test.setHeaderText("Atribut gagal ditambahkan!");
             String message = "";
             for (String error : errors) {
                 message = message + "\n" + error;
@@ -545,14 +523,21 @@ public class UtamaController implements Initializable {
             test.showAndWait();
         } else {
             if (tfField.getText().equalsIgnoreCase("") || tfLength.getText().equalsIgnoreCase("")) {
-                System.out.println("emg kosong?");
+                Alert test = new Alert(Alert.AlertType.WARNING);
+                test.setTitle("Notification");
+                test.setHeaderText("Gagal ditambahkan!");
+                test.showAndWait();
             } else {
+                if (taDescription.getText().equalsIgnoreCase("")) {
+                    taDescription.setText("-");
+                }
+                if (tfAlias.getText().equalsIgnoreCase("")) {
+                    tfAlias.setText("-");
+                }
                 if (data != null) {
-                    System.out.println("ga null ah");
                     int id = 0;
                     for (Attribute item : items) {
                         if (item.getField().equalsIgnoreCase(cellValue)) {
-                            System.out.println("mudah ada tinggal edit");
                             try {
                                 items.get(id).setField(tfField.getText());
                                 items.get(id).setDataType(cbDataType.getValue().toString());
@@ -569,7 +554,6 @@ public class UtamaController implements Initializable {
                         id++;
                     }
                 } else {
-                    System.out.println("baru");
                     items.add(new Attribute(
                             items.size() + 1,
                             tfField.getText(),
@@ -685,8 +669,13 @@ public class UtamaController implements Initializable {
             test.setContentText(message);
             test.showAndWait();
         } else {
+            if (taDescription.getText().equalsIgnoreCase("")) {
+                taDescription.setText("-");
+            }
+
             write();
             read();
+
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             ArrayList<Attribute> generatedAttributes = new ArrayList();
 
@@ -720,7 +709,6 @@ public class UtamaController implements Initializable {
             try (FileWriter file = new FileWriter(path + tfKodeDataDictionary.getText() + ".json")) {
                 file.write(jsonStringss);
                 file.flush();
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -740,7 +728,6 @@ public class UtamaController implements Initializable {
             test.setHeaderText("Berhasil digenerate!");
             test.showAndWait();
             clearTable();
-//            listview.getItems().remove(tfDokumen.getText());
             cellValue = null;
         }
     }
@@ -753,6 +740,7 @@ public class UtamaController implements Initializable {
         length.setCellValueFactory(new PropertyValueFactory<Attribute, String>("length"));
         description.setCellValueFactory(new PropertyValueFactory<Attribute, String>("description"));
         alias.setCellValueFactory(new PropertyValueFactory<Attribute, String>("alias"));
+
         loadTable();
         loadDataType();
         selectListViewItem();
@@ -808,6 +796,7 @@ public class UtamaController implements Initializable {
         tfLength.clear();
         taDescription.clear();
         cellValue = "";
+        cellValue = null;
     }
 
     private void clearTable() {
