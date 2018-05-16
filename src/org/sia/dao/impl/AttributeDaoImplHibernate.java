@@ -57,7 +57,20 @@ public class AttributeDaoImplHibernate implements AttributeDao{
 
     @Override
     public void updateAttribute(Attribute attribute) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        for(Attribute att : getAllAttributes())
+        {
+            if(attribute.getId() == att.getId())
+            {
+                Session session = HibernateUtil.getSession();
+                session.getTransaction().begin();
+                attribute.setId(att.getId());
+                att = attribute;
+                session.update(att);
+                session.getTransaction().commit();
+                HibernateUtil.closeSession();
+                break;
+            }
+        }
     }
     
 }

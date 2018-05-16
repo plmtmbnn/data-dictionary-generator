@@ -104,7 +104,7 @@ public class UtamaController implements Initializable {
     Map<String, Integer> mapActorCoordinate = new HashMap<>();
     Map<String, Integer> mapActorCoordinateSorted = new LinkedHashMap<>();
     Map<String, Integer> mapDataObjectCoordinate = new HashMap<>();
-    Map<String, String> mapDataDictionaries = new HashMap<>();
+    Map<String, DataDictonary> mapDataDictionary = new HashMap<>();
 
     private final AttributeDao attributeDao;
     private final DataDictionaryDao dataDictionaryDao;
@@ -323,23 +323,36 @@ public class UtamaController implements Initializable {
     private void read() {
         storedItems.clear();
         mapStoredAttributes.clear();
-        mapDataDictionaries.clear();
 
-        for (Attribute attribute : attributeDao.getAllAttributes()) {
-            storedItems.add(attribute);
-            mapStoredAttributes.put(attribute.getField(), attribute.getId());
+        DataDictonary availabledataDictionary = null;
+        for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
+            if (tfKodeDataDictionary.getText().equalsIgnoreCase(dataDictonary.getKodeDataDictionary())) {
+                availabledataDictionary = dataDictonary;
+            }
+            mapDataDictionary.put(dataDictonary.getKodeDataDictionary(), dataDictonary);
         }
 
-        dataDictionaryDao.getAllDataDictonaries().forEach((dataDictonary) -> {
-            mapDataDictionaries.put(dataDictonary.getDokumentName(), dataDictonary.getDokumentName());
-        });
+        if (availabledataDictionary == null) {
+            for (Attribute attribute : attributeDao.getAllAttributes()) {
+                storedItems.add(attribute);
+                mapStoredAttributes.put(attribute.getField(), attribute.getId());
+            }
+        } else {
+            for (DataDictionaryAttribute dataDictionaryAttribute : dataDictonaryAttibuteDao.getAllDataDictionaryAttributes()) {
+                if (availabledataDictionary.getId() == dataDictionaryAttribute.getDataDictionaryId()) {
+                    Attribute attribute = attributeDao.getAttribute(dataDictionaryAttribute.getAttributeId());
+                    storedItems.add(attribute);
+                    mapStoredAttributes.put(attribute.getField(), attribute.getId());
+                }
+            }
+        }
     }
 
     private void msWordGenerate(int id) throws Exception {
         XWPFDocument document = new XWPFDocument();
         try (FileOutputStream out = new FileOutputStream(new File(path + tfKodeDataDictionary.getText() + ".docx"))) {
             DataDictonary dataDictionary = dataDictionaryDao.getAttribute(id);
-            
+
             XWPFParagraph paragraph = document.createParagraph();
             XWPFRun run = paragraph.createRun();
             run.addBreak();
@@ -383,21 +396,21 @@ public class UtamaController implements Initializable {
             run.addTab();
             run.addTab();
             run.setText(":");
-            
+
             XWPFTable table = document.createTable();
-            
+
             table.setCellMargins(1, 1, 100, 20);
             table.setWidth(900);
-            
+
             XWPFTableRow tableRowOne = table.getRow(0);
             tableRowOne.getCell(0).setText("Field");
             tableRowOne.addNewTableCell().setText("Alias");
             tableRowOne.addNewTableCell().setText("Data Type");
             tableRowOne.addNewTableCell().setText("Length");
             tableRowOne.addNewTableCell().setText("Description");
-            
-            dataDictonaryAttibuteDao.getAllDataDictionaryAttributes().stream().filter((allDataDictionaryAttribute) -> 
-                    (allDataDictionaryAttribute.getDataDictionaryId() == id)).forEachOrdered((allDataDictionaryAttribute) -> {
+
+            dataDictonaryAttibuteDao.getAllDataDictionaryAttributes().stream().filter((allDataDictionaryAttribute)
+                    -> (allDataDictionaryAttribute.getDataDictionaryId() == id)).forEachOrdered((allDataDictionaryAttribute) -> {
                 XWPFTableRow tableRows = table.createRow();
                 tableRows.getCell(0).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getField());
                 tableRows.getCell(1).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getAlias());
@@ -405,34 +418,40 @@ public class UtamaController implements Initializable {
                 tableRows.getCell(3).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getLength());
                 tableRows.getCell(4).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getDescription());
             });
-            
+
             run.setText(table.getText());
-            
+
             XWPFParagraph paragraph2 = document.createParagraph();
             XWPFRun run2 = paragraph2.createRun();
-            
+
             run2.setText("Deskripsi");
             run2.addTab();
             run2.addTab();
             run2.setText(": " + dataDictionary.getDescription());
             run2.addBreak();
-            
+
             document.write(out);
         }
         System.out.println("document written successfully");
     }
 
-    private void loadAttributesBaseOnDataObject(String newValue) {
-        if (newValue != null) {
-            items.clear();
-            String[] split = mapDeskripsi.get(newValue).split("#");
+    private void loadAttributesBaseOnDataObject(DataDictonary dataDictionary, String newValue) {
+        items.clear();
+        String[] split = mapDeskripsi.get(newValue).split("#");
+        if (dataDictionary != null) {
+            for (DataDictionaryAttribute dda : dataDictonaryAttibuteDao.getAllDataDictionaryAttributes()) {
+                if(dda.getDataDictionaryId() == dataDictionary.getId())
+                {
+                    items.add(attributeDao.getAttribute(dda.getAttributeId()));
+                }    
+            }
+        } else {
             for (int i = 0; i < split.length; i++) {
                 if (i == 0) {
                 } else {
                     if (mapStoredAttributes.get(split[i]) != null) {
                         System.out.println(mapStoredAttributes.get(split[i]));
                         if (split[i].equalsIgnoreCase(attributeDao.getAttribute(mapStoredAttributes.get(split[i])).getField())) {
-                            System.out.println(split[i] + " : " + attributeDao.getAttribute(mapStoredAttributes.get(split[i])).getField());
                             items.add(attributeDao.getAttribute(mapStoredAttributes.get(split[i])));
                         }
                     } else {
@@ -442,7 +461,6 @@ public class UtamaController implements Initializable {
                 }
             }
         }
-
     }
 
     private void selectListViewItem() {
@@ -456,18 +474,35 @@ public class UtamaController implements Initializable {
                     public void changed(
                             ObservableValue<? extends String> observable,
                             String oldValue, String newValue) {
-                        tfDokumen.setText(newValue);
-                        tfAktivitas.setText(mapDataObjectActivity.get(newValue));
-                        tfAktor.setText(mapActor.get(newValue));
-                        tfKodeDataDictionary.setText(mapCodeDD.get(newValue));
-                        tfKode.setText(kodeProses);
-                        tfNamaProses.setText(namaProses);
-                        if (newValue != null) {
-                            loadAttributesBaseOnDataObject(newValue);
+                        tfDeskripsi.clear();
+                        tfRelasi.clear();
+                        System.out.println(newValue);
+                        if (mapDataDictionary.get(mapCodeDD.get(newValue)) != null
+                                && mapCodeDD.get(newValue).equalsIgnoreCase(mapDataDictionary.get(mapCodeDD.get(newValue)).getKodeDataDictionary())) {
+                            tfDokumen.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getDokumentName());
+                            tfAktivitas.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getActivity());
+                            tfAktor.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getActor());
+                            tfKodeDataDictionary.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getKodeDataDictionary());
+                            tfKode.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getProcessCode());
+                            tfNamaProses.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getProcessName());
+                            tfRelasi.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getRelation());
+                            tfDeskripsi.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getDescription());
+                            if (newValue != null) {
+                                loadAttributesBaseOnDataObject(mapDataDictionary.get(mapCodeDD.get(newValue)), newValue);
+                            }
+                        } else {
+                            tfDokumen.setText(newValue);
+                            tfAktivitas.setText(mapDataObjectActivity.get(newValue));
+                            tfAktor.setText(mapActor.get(newValue));
+                            tfKodeDataDictionary.setText(mapCodeDD.get(newValue));
+                            tfKode.setText(kodeProses);
+                            tfNamaProses.setText(namaProses);
+                            if (newValue != null) {
+                                loadAttributesBaseOnDataObject(mapDataDictionary.get(mapCodeDD.get(newValue)), newValue);
+                            }
                         }
                     }
                 });
-        clearTable();
         loadTable();
     }
 
@@ -588,20 +623,21 @@ public class UtamaController implements Initializable {
     }
 
     private void write() throws Exception {
+//====================================DATA DICTIONARY======================================================        
         int check = 0;
+        DataDictonary newDataDictonary = new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(),
+                tfKode.getText(), tfNamaProses.getText(), tfAktivitas.getText(),
+                tfAktor.getText(), tfRelasi.getText(), tfDeskripsi.getText());
         for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
-            if(dataDictonary.getKodeDataDictionary().equals(tfKodeDataDictionary.getText()))
-            {
+            if (dataDictonary.getKodeDataDictionary().equals(tfKodeDataDictionary.getText())) {
                 check++;
+                dataDictionaryDao.updateDataDictonary(newDataDictonary);
             }
         }
-        if(check != 1)
-        {
-            dataDictionaryDao.saveDataDictonary(new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(),
-                tfKode.getText(), tfNamaProses.getText(), tfAktivitas.getText(),
-                tfAktor.getText(), tfRelasi.getText(), tfDeskripsi.getText()));
+        if (check != 1) {
+            dataDictionaryDao.saveDataDictonary(newDataDictonary);
         }
-//=======================================================================================================        
+//===========================================ATTRIBUTE======================================================        
         ArrayList<Attribute> attributes = (ArrayList<Attribute>) attributeDao.getAllAttributes();
         items.forEach((item) -> {
             int flag = 0;
@@ -618,7 +654,7 @@ public class UtamaController implements Initializable {
             }
             flag = 0;
         });
-//=======================================================================================================        
+//==========================================DD - A=========================================================        
         int idDataDictionary = 0;
         for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
             if (dataDictonary.getKodeDataDictionary().equalsIgnoreCase(tfKodeDataDictionary.getText())) {
@@ -636,7 +672,7 @@ public class UtamaController implements Initializable {
                 }
             }
         });
-//=======================================================================================================                
+//==================================================WORD=====================================================                
         try {
             msWordGenerate(id);
         } catch (Exception ex) {

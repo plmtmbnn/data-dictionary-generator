@@ -60,7 +60,20 @@ public class DataDictionaryDaoImplHibernate implements DataDictionaryDao{
 
     @Override
     public void updateDataDictonary(DataDictonary dataDictonary) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+       for(DataDictonary dd : getAllDataDictonaries())
+        {
+            if(dataDictonary.getKodeDataDictionary().equalsIgnoreCase(dd.getKodeDataDictionary()))
+            {
+                Session session = HibernateUtil.getSession();
+                session.getTransaction().begin();
+                dataDictonary.setId(dd.getId());
+                dd = dataDictonary;
+                session.update(dd);
+                session.getTransaction().commit();
+                HibernateUtil.closeSession();
+                break;
+            }
+        }
     }
 
     @Override
