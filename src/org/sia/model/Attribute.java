@@ -9,6 +9,7 @@ package org.sia.model;
  *
  * @author Polma E. Tambunan
  */
+import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -37,18 +38,24 @@ public class Attribute {
     @Column(name = "description")
     private String description;
     @Column(name = "alias")
-    private String alias;
-
+    private String alias;    
+    @Column(name = "createdAt")
+    private Date createdAt;
+    @Column(name = "updatedAt")
+    private Date updatedAt;
+    
     public Attribute() {
     }
 
-    public Attribute(int id, String field, String dataType, String length, String description, String alias) {
+    public Attribute(int id, String field, String dataType, String length, String description, String alias, Date createdAt, Date updatedAt) {
         this.id = id;
         this.field = field;
         this.dataType = dataType;
         this.length = length;
         this.description = description;
         this.alias = alias;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public int getId() {
@@ -99,6 +106,21 @@ public class Attribute {
         this.alias = alias;
     }
 
-    
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     
 }

@@ -7,6 +7,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  *
@@ -35,12 +36,15 @@ public class DataDictonary {
     private String relation;
     @Column(name = "description")    
     private String description;          
+    @Column(name = "createdAt")
+    private Date createdAt;
+    @Column(name = "updatedAt")
+    private Date updatedAt;
 
     public DataDictonary() {
     }
 
-    
-    public DataDictonary(int id, String kodeDataDictionary, String dokumentName, String processCode, String processName, String activity, String actor, String relation, String description) {
+    public DataDictonary(int id, String kodeDataDictionary, String dokumentName, String processCode, String processName, String activity, String actor, String relation, String description, Date createdAt, Date updatedAt) {
         this.id = id;
         this.kodeDataDictionary = kodeDataDictionary;
         this.dokumentName = dokumentName;
@@ -50,6 +54,8 @@ public class DataDictonary {
         this.actor = actor;
         this.relation = relation;
         this.description = description;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public int getId() {
@@ -124,6 +130,23 @@ public class DataDictonary {
         this.description = description;
     }
 
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    
     
     
 }

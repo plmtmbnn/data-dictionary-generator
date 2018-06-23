@@ -52,7 +52,9 @@ import javafx.scene.image.ImageView;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import org.sia.model.Attribute;
 import org.sia.model.DataDictonary;
 
@@ -115,6 +117,8 @@ public class UtamaController implements Initializable {
     private String kodeProses = "";
     private String namaProses = "";
 
+    Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+
     public UtamaController() {
         tableViewDD = new TableView<>();
         attributeDao = new AttributeDaoImplHibernate();
@@ -126,7 +130,7 @@ public class UtamaController implements Initializable {
     private void loadFileXml(ActionEvent event) throws JAXBException {
         try {
             FileChooser fc = new FileChooser();
-            fc.setInitialDirectory(new File("E:\\data dictionary"));
+            fc.setInitialDirectory(new File("C://"));
             fc.getExtensionFilters().addAll(new ExtensionFilter("xml file", "*.xpdl"));
             File selectedFile = fc.showOpenDialog(null);
             if (selectedFile != null) {
@@ -151,7 +155,6 @@ public class UtamaController implements Initializable {
                 String vendorString = null;
                 for (int temp = 0; temp < vendor.getLength(); temp++) {
                     Node nNode = vendor.item(temp);
-                    String target, source;
                     if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                         Element eElement = (Element) nNode;
                         vendorString = eElement.getTextContent();
@@ -247,11 +250,8 @@ public class UtamaController implements Initializable {
                             }
                         }
                     }
-
                     loadListView(listDataObject);
-
                 }
-
             } else {
                 System.out.println("file is not valid");
             }
@@ -259,7 +259,7 @@ public class UtamaController implements Initializable {
         } catch (Exception e) {
             Alert test = new Alert(Alert.AlertType.WARNING);
             test.setTitle("Notification");
-            test.setHeaderText("Gagal digenerate!");
+            test.setHeaderText("Gagal dibuka!");
             String message = "File XML tidak sesuai!";
             test.setContentText(message);
             test.showAndWait();
@@ -452,7 +452,9 @@ public class UtamaController implements Initializable {
                         }
                     } else {
                         items.add(new Attribute(
-                                attributeDao.getAllAttributes().size() + 1, split[i], "", "", "", ""));
+                                attributeDao.getAllAttributes().size() + 1, split[i], "", "", "", "",
+                                null,
+                                null));
                     }
                 }
             }
@@ -521,7 +523,9 @@ public class UtamaController implements Initializable {
                             tfLength.setText(item.getLength());
                             taDescription.setText(item.getDescription());
                             data = new Attribute(item.getId(), item.getField(), item.getDataType(), item.getLength(),
-                                    item.getDescription(), item.getAlias());
+                                    item.getDescription(), item.getAlias(),
+                                    item.getCreatedAt(),
+                                    item.getUpdatedAt());
                         }
                     }
                 }
@@ -591,7 +595,10 @@ public class UtamaController implements Initializable {
                             cbDataType.getValue().toString(),
                             tfLength.getText(),
                             taDescription.getText(),
-                            tfAlias.getText()));
+                            tfAlias.getText(),
+                            null,
+                            null));
+
                     tfField.clear();
                     tfAlias.clear();
                     tfLength.clear();
@@ -624,14 +631,20 @@ public class UtamaController implements Initializable {
         DataDictonary dataDict = new DataDictonary();
         DataDictonary newDataDictonary = new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(),
                 tfKode.getText(), tfNamaProses.getText(), tfAktivitas.getText(),
-                tfAktor.getText(), tfRelasi.getText(), tfDeskripsi.getText());
+                tfAktor.getText(), tfRelasi.getText(), tfDeskripsi.getText(),
+                null,
+                null);
+
         for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
             if (dataDictonary.getKodeDataDictionary().equals(tfKodeDataDictionary.getText())) {
                 check++;
+                newDataDictonary.setCreatedAt(dataDictonary.getCreatedAt());
+                newDataDictonary.setUpdatedAt(timestamp);
                 dataDict = dataDictionaryDao.updateDataDictonary(newDataDictonary);
             }
         }
         if (check != 1) {
+            newDataDictonary.setCreatedAt(timestamp);
             dataDict = dataDictionaryDao.saveDataDictonary(newDataDictonary);
         }
 //===========================================ATTRIBUTE======================================================        
@@ -656,6 +669,7 @@ public class UtamaController implements Initializable {
                 }
                 if (flag == attributes.size()) {
                     item.setId(0);
+                    item.setCreatedAt(timestamp);
                     attributeDao.saveAttribute(item);
                 }
                 flag = 0;
@@ -680,7 +694,9 @@ public class UtamaController implements Initializable {
                 for (Attribute attribute : currentAtributes) {
                     if (item.getField().equalsIgnoreCase(attribute.getField())) {
                         dataDictonaryAttibuteDao.saveDataDictionaryAttribute(
-                                new DataDictionaryAttribute(0, id, attribute.getId()));
+                                new DataDictionaryAttribute(0, id, attribute.getId(),
+                                        timestamp,
+                                        null));
                     }
                 }
             });
@@ -757,7 +773,10 @@ public class UtamaController implements Initializable {
                 obj2.put("alias", item.getAlias());
                 list.add(obj2);
                 generatedAttributes.add(new Attribute(item.getId(), item.getField(), item.getDataType(),
-                        item.getLength(), item.getDescription(), item.getAlias()));
+                        item.getLength(), item.getDescription(), item.getAlias(),
+                        item.getCreatedAt(),
+                        item.getUpdatedAt()));
+
             });
             obj.put("attributes", list);
             String jsonStringss = gson.toJson(obj);
