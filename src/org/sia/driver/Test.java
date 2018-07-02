@@ -11,7 +11,7 @@ import java.sql.Timestamp;
  *
  * @author Polma E. Tambunan
  */
-public class Coba {
+public class Test {
     public static void main(String[] args) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         System.out.println(timestamp);

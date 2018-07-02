@@ -54,7 +54,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import org.sia.model.Attribute;
 import org.sia.model.DataDictonary;
 
@@ -130,7 +129,7 @@ public class UtamaController implements Initializable {
     private void loadFileXml(ActionEvent event) throws JAXBException {
         try {
             FileChooser fc = new FileChooser();
-            fc.setInitialDirectory(new File("C://"));
+            fc.setInitialDirectory(new File("D:\\12S14026_POLMA\\Semester 8\\TA 2\\data dictionary"));
             fc.getExtensionFilters().addAll(new ExtensionFilter("xml file", "*.xpdl"));
             File selectedFile = fc.showOpenDialog(null);
             if (selectedFile != null) {
@@ -627,26 +626,58 @@ public class UtamaController implements Initializable {
 
     private void write() throws Exception {
 //====================================DATA DICTIONARY======================================================        
-        int check = 0;
         DataDictonary dataDict = new DataDictonary();
         DataDictonary newDataDictonary = new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(),
                 tfKode.getText(), tfNamaProses.getText(), tfAktivitas.getText(),
                 tfAktor.getText(), tfRelasi.getText(), tfDeskripsi.getText(),
                 null,
                 null);
+        int flagDD = 0;
+        if (dataDictionaryDao.getAllDataDictonaries().isEmpty()) {
+            newDataDictonary.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+            dataDict = dataDictionaryDao.saveDataDictonary(newDataDictonary);
+        } else {
+            for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
+                if (dataDictonary.getKodeDataDictionary().equals(tfKodeDataDictionary.getText())) {
+                    flagDD++;
+                    ArrayList<Integer> checkUpdated = new ArrayList();
 
-        for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
-            if (dataDictonary.getKodeDataDictionary().equals(tfKodeDataDictionary.getText())) {
-                check++;
-                newDataDictonary.setCreatedAt(dataDictonary.getCreatedAt());
-                newDataDictonary.setUpdatedAt(timestamp);
-                dataDict = dataDictionaryDao.updateDataDictonary(newDataDictonary);
+                    if (!dataDictonary.getActivity().equals(newDataDictonary.getActivity())) {
+                        checkUpdated.add(1);
+                    }
+                    if (!dataDictonary.getActor().equals(newDataDictonary.getActor())) {
+                        checkUpdated.add(1);
+                    }
+                    if (!dataDictonary.getDescription().equals(newDataDictonary.getDescription())) {
+                        checkUpdated.add(1);
+                    }
+                    if (!dataDictonary.getDokumentName().equals(newDataDictonary.getDokumentName())) {
+                        checkUpdated.add(1);
+                    }
+                    if (!dataDictonary.getProcessCode().equals(newDataDictonary.getProcessCode())) {
+                        checkUpdated.add(1);
+                    }
+                    if (!dataDictonary.getProcessName().equals(newDataDictonary.getProcessName())) {
+                        checkUpdated.add(1);
+                    }
+                    if (!dataDictonary.getRelation().equals(newDataDictonary.getRelation())) {
+                        checkUpdated.add(1);
+                    }
+                    if (checkUpdated.isEmpty()) {
+                    } else {
+                        newDataDictonary.setCreatedAt(dataDictonary.getCreatedAt());
+                        newDataDictonary.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+                        dataDict = dataDictionaryDao.updateDataDictonary(newDataDictonary);
+                        break;
+                    }
+                }
+            }
+            if (flagDD == 0) {
+                newDataDictonary.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+                dataDict = dataDictionaryDao.saveDataDictonary(newDataDictonary);
             }
         }
-        if (check != 1) {
-            newDataDictonary.setCreatedAt(timestamp);
-            dataDict = dataDictionaryDao.saveDataDictonary(newDataDictonary);
-        }
+
 //===========================================ATTRIBUTE======================================================        
         ArrayList<Attribute> attributes = (ArrayList<Attribute>) attributeDao.getAllAttributes();
 
@@ -662,46 +693,77 @@ public class UtamaController implements Initializable {
                 int flag = 0;
                 for (Attribute attribute : attributes) {
                     if (attribute.getField().equalsIgnoreCase(item.getField())) {
-                        attributeDao.updateAttribute(item);
+                        ArrayList<Integer> checkUpdated = new ArrayList();
+                        if (!item.getAlias().equals(attribute.getAlias())) {
+                            checkUpdated.add(1);
+                        }
+                        if (!item.getDataType().equals(attribute.getDataType())) {
+                            checkUpdated.add(1);
+                        }
+                        if (!item.getDescription().equals(attribute.getDescription())) {
+                            checkUpdated.add(1);
+                        }
+                        if (!item.getField().equals(attribute.getField())) {
+                            checkUpdated.add(1);
+                        }
+                        if (!item.getLength().equals(attribute.getLength())) {
+                            checkUpdated.add(1);
+                        }
+
+                        if (checkUpdated.isEmpty()) {
+                        } else {
+                            item.setCreatedAt(attribute.getCreatedAt());
+                            item.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+                            attributeDao.updateAttribute(item);
+                        }
                     } else {
                         flag++;
                     }
                 }
                 if (flag == attributes.size()) {
                     item.setId(0);
-                    item.setCreatedAt(timestamp);
+                    item.setCreatedAt(new Timestamp(System.currentTimeMillis()));
                     attributeDao.saveAttribute(item);
                 }
                 flag = 0;
             });
         } else {
             items.forEach((item) -> {
+                item.setCreatedAt(item.getCreatedAt());
+                item.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
                 attributeDao.updateAttribute(item);
             });
         }
 
-//==========================================DD - A=========================================================        
+//==========================================DD - A=========================================================
         int idDataDictionary = 0;
         for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
             if (dataDictonary.getKodeDataDictionary().equalsIgnoreCase(tfKodeDataDictionary.getText())) {
                 idDataDictionary = dataDictonary.getId();
             }
         }
+
+        Map<Integer, Integer> listIdDD = new HashMap<>();
+        dataDictonaryAttibuteDao.getAllDataDictionaryAttributes().forEach((list) -> {
+            listIdDD.put(list.getDataDictionaryId(), list.getDataDictionaryId());
+        });
+
         int id = idDataDictionary;
         ArrayList<Attribute> currentAtributes = (ArrayList<Attribute>) attributeDao.getAllAttributes();
-        if (listIdAttributes.isEmpty()) {
-            items.forEach((item) -> {
-                for (Attribute attribute : currentAtributes) {
-                    if (item.getField().equalsIgnoreCase(attribute.getField())) {
-                        dataDictonaryAttibuteDao.saveDataDictionaryAttribute(
-                                new DataDictionaryAttribute(0, id, attribute.getId(),
-                                        timestamp,
-                                        null));
+        if (listIdDD.get(id) == null) {
+            if (listIdAttributes.isEmpty()) {
+                items.forEach((item) -> {
+                    for (Attribute attribute : currentAtributes) {
+                        if (item.getField().equalsIgnoreCase(attribute.getField())) {
+                            dataDictonaryAttibuteDao.saveDataDictionaryAttribute(
+                                    new DataDictionaryAttribute(0, id, attribute.getId(),
+                                            new Timestamp(System.currentTimeMillis()),
+                                            null));
+                        }
                     }
-                }
-            });
+                });
+            }
         }
-
 //==================================================WORD=====================================================                
         try {
             msWordGenerate(id);
