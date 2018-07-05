@@ -151,6 +151,7 @@ public class UtamaController implements Initializable {
                 NodeList nListDocumentation = doc.getElementsByTagName("Documentation");
                 NodeList nListCoordinates = doc.getElementsByTagName("Coordinates");
                 NodeList vendor = doc.getElementsByTagName("Vendor");
+
                 String vendorString = null;
                 for (int temp = 0; temp < vendor.getLength(); temp++) {
                     Node nNode = vendor.item(temp);
@@ -182,6 +183,54 @@ public class UtamaController implements Initializable {
                         }
                     }
 
+                    for (int temp = 0; temp < nListCoordinates.getLength(); temp++) {
+                        Node nNode = nListCoordinates.item(temp);
+                        String name, id;
+                        if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                            Element eElement = (Element) nNode;
+                            name = eElement.getAttribute("Name");
+                            id = eElement.getAttribute("Id");
+                            mapActivity.put(id, name);
+                        }
+                    }
+                    
+                    
+                    Map<String, String> mapSubProcessTaskCoordinate = new HashMap<>();
+                    Map<String, String> mapSubProcessDataObjectCoordinate = new HashMap<>();
+
+                    for (int temp = 0; temp < nListCoordinates.getLength(); temp++) {
+                        Node nNode = nListCoordinates.item(temp);
+                        if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                            Element eElement = (Element) nNode;
+                            Element eElementParent = (Element) eElement.getParentNode().getParentNode().getParentNode();
+                            
+                            if(eElementParent.getNodeName().equals("Activity"))
+                            {
+                                mapSubProcessTaskCoordinate.put(eElementParent.getAttribute("Name"), eElement.getAttribute("YCoordinate"));
+                            }
+                        }
+                    }
+
+                    for (int temp = 0; temp < nListCoordinates.getLength(); temp++) {
+                        Node nNode = nListCoordinates.item(temp);
+                        if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                            Element eElement = (Element) nNode;
+                            Element eElementParent = (Element) eElement.getParentNode().getParentNode().getParentNode();
+                            Element eElementParent2 = (Element) eElementParent.getParentNode().getParentNode();
+                            
+                            if(eElementParent2.getNodeName().equals("ActivitySet") && eElementParent.getNodeName().equalsIgnoreCase("DataObject"))
+                            {
+                                mapSubProcessDataObjectCoordinate.put(eElementParent.getAttribute("Name"), mapSubProcessTaskCoordinate.get(eElementParent2.getAttribute("Name")));
+                            }
+                        }
+                    }
+                    
+                    
+                for (Map.Entry<String, String> entry2 : mapSubProcessDataObjectCoordinate.entrySet()) {
+                    System.out.println(entry2.getKey()+ "|"+entry2.getValue());
+                }
+
+                    
                     mapDataObject.clear();
                     mapDataObjectCoordinate.clear();
                     mapActorCoordinate.clear();
@@ -193,13 +242,21 @@ public class UtamaController implements Initializable {
                         if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                             Element eElement = (Element) nNode;
                             Element eElementParent = (Element) eElement.getParentNode().getParentNode().getParentNode();
+
                             name = eElementParent.getAttribute("Name");
                             id = eElementParent.getAttribute("Id");
                             if (eElementParent.getNodeName().equalsIgnoreCase("lane")) {
                                 mapActorCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(eElement.getAttribute("YCoordinate")));
                             }
                             if (eElementParent.getNodeName().equalsIgnoreCase("DataObject")) {
-                                mapDataObjectCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(eElement.getAttribute("YCoordinate")));
+                                
+                                
+                                if(mapSubProcessDataObjectCoordinate.get(eElementParent.getAttribute("Name")) != null)
+                                {
+                                    mapDataObjectCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(mapSubProcessDataObjectCoordinate.get(eElementParent.getAttribute("Name"))));
+                                } else {
+                                    mapDataObjectCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(eElement.getAttribute("YCoordinate")));                                    
+                                }
                                 mapDataObject.put(id, name);
                                 listDataObject.add(name);
                                 String codeDD = "DD-" + splits[0] + "-" + String.format("%03d", num);
@@ -610,10 +667,17 @@ public class UtamaController implements Initializable {
     }
 
     private void loadDataType() {
-        mapDataType.put("String", "255");
-        mapDataType.put("Number", "11");
-        mapDataType.put("Currency", "50");
-        mapDataType.put("Date", "10");
+        mapDataType.put("String", "-");
+        mapDataType.put("Integer", "-");
+        mapDataType.put("Long Integer", "-");
+        mapDataType.put("Date", "-");
+        mapDataType.put("Currency", "-");
+        mapDataType.put("Real", "-");
+        mapDataType.put("Single Real", "-");
+        mapDataType.put("Date Time", "-");
+        mapDataType.put("Time", "-");
+        mapDataType.put("Boolean", "-");
+        mapDataType.put("Binary", "-");
 
         for (Map.Entry<String, String> entry2 : mapDataType.entrySet()) {
             options.add(entry2.getKey());
