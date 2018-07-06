@@ -595,7 +595,11 @@ public class UtamaController implements Initializable {
         if (tfField.getText().equalsIgnoreCase("")) {
             errors.add("Kolom field tidak boleh kosong");
         }
-        if (tfLength.getText().equalsIgnoreCase("")) {
+        if(cbDataType.getSelectionModel().isEmpty())
+        {
+            errors.add("Kolom tipe data harus dipilih");        
+        }
+        if (tfLength.getText().isEmpty()) {
             errors.add("Kolom length tidak boleh kosong");
         }
         if (!tfLength.getText().matches("\\d*")) {
@@ -667,16 +671,16 @@ public class UtamaController implements Initializable {
     }
 
     private void loadDataType() {
-        mapDataType.put("String", "-");
-        mapDataType.put("Integer", "-");
-        mapDataType.put("Long Integer", "-");
-        mapDataType.put("Float", "-");
-        mapDataType.put("Double", "-");
-        mapDataType.put("Decimal", "-");
-        mapDataType.put("Date", "-");
-        mapDataType.put("Time", "-");
-        mapDataType.put("Date Time", "-");
-        mapDataType.put("Currency", "-");
+        mapDataType.put("Boolean","1");
+        mapDataType.put("String","5000");
+        mapDataType.put("Integer","11");
+        mapDataType.put("Float","7.2");
+        mapDataType.put("Double","16.2");
+        mapDataType.put("Decimal","18.2");
+        mapDataType.put("Date","-");
+        mapDataType.put("Time","-");
+        mapDataType.put("Date Time","-");
+        mapDataType.put("Currency","-");
         
         for (Map.Entry<String, String> entry2 : mapDataType.entrySet()) {
             options.add(entry2.getKey());
