@@ -670,15 +670,14 @@ public class UtamaController implements Initializable {
         mapDataType.put("String", "-");
         mapDataType.put("Integer", "-");
         mapDataType.put("Long Integer", "-");
+        mapDataType.put("Float", "-");
+        mapDataType.put("Double", "-");
+        mapDataType.put("Decimal", "-");
         mapDataType.put("Date", "-");
-        mapDataType.put("Currency", "-");
-        mapDataType.put("Real", "-");
-        mapDataType.put("Single Real", "-");
-        mapDataType.put("Date Time", "-");
         mapDataType.put("Time", "-");
-        mapDataType.put("Boolean", "-");
-        mapDataType.put("Binary", "-");
-
+        mapDataType.put("Date Time", "-");
+        mapDataType.put("Currency", "-");
+        
         for (Map.Entry<String, String> entry2 : mapDataType.entrySet()) {
             options.add(entry2.getKey());
         }
