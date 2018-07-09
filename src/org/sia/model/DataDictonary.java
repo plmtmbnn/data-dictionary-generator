@@ -20,10 +20,12 @@ public class DataDictonary {
     @Id
     @Column(name = "idDataDictionary")    
     private int id;
-    @Column(name = "kodeDataDictionary")    
-    private String kodeDataDictionary;
-    @Column(name = "dokumentName")    
-    private String dokumentName;
+    @Column(name = "dataDictionaryCode")    
+    private String dataDictionaryCode;
+    @Column(name = "documentName")    
+    private String documentName;
+    @Column(name = "dataForm")    
+    private String dataForm;
     @Column(name = "processCode")    
     private String processCode;
     @Column(name = "processName")    
@@ -32,8 +34,6 @@ public class DataDictonary {
     private String activity;
     @Column(name = "actor")    
     private String actor;
-    @Column(name = "relation")    
-    private String relation;
     @Column(name = "description")    
     private String description;          
     @Column(name = "createdAt")
@@ -44,20 +44,22 @@ public class DataDictonary {
     public DataDictonary() {
     }
 
-    public DataDictonary(int id, String kodeDataDictionary, String dokumentName, String processCode, String processName, String activity, String actor, String relation, String description, Date createdAt, Date updatedAt) {
+    public DataDictonary(int id, String dataDictionaryCode, String documentName, String dataForm, String processCode, String processName, String activity, String actor, String description, Date createdAt, Date updatedAt) {
         this.id = id;
-        this.kodeDataDictionary = kodeDataDictionary;
-        this.dokumentName = dokumentName;
+        this.dataDictionaryCode = dataDictionaryCode;
+        this.documentName = documentName;
+        this.dataForm = dataForm;
         this.processCode = processCode;
         this.processName = processName;
         this.activity = activity;
         this.actor = actor;
-        this.relation = relation;
         this.description = description;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
+    
+    
     public int getId() {
         return id;
     }
@@ -66,20 +68,28 @@ public class DataDictonary {
         this.id = id;
     }
 
-    public String getKodeDataDictionary() {
-        return kodeDataDictionary;
+    public String getDataDictionaryCode() {
+        return dataDictionaryCode;
     }
 
-    public void setKodeDataDictionary(String kodeDataDictionary) {
-        this.kodeDataDictionary = kodeDataDictionary;
+    public void setDataDictionaryCode(String dataDictionaryCode) {
+        this.dataDictionaryCode = dataDictionaryCode;
     }
 
-    public String getDokumentName() {
-        return dokumentName;
+    public String getDocumentName() {
+        return documentName;
     }
 
-    public void setDokumentName(String dokumentName) {
-        this.dokumentName = dokumentName;
+    public void setDocumentName(String documentName) {
+        this.documentName = documentName;
+    }
+
+    public String getDataForm() {
+        return dataForm;
+    }
+
+    public void setDataForm(String dataForm) {
+        this.dataForm = dataForm;
     }
 
     public String getProcessCode() {
@@ -114,14 +124,6 @@ public class DataDictonary {
         this.actor = actor;
     }
 
-    public String getRelation() {
-        return relation;
-    }
-
-    public void setRelation(String relation) {
-        this.relation = relation;
-    }
-
     public String getDescription() {
         return description;
     }
@@ -146,7 +148,6 @@ public class DataDictonary {
         this.updatedAt = updatedAt;
     }
 
-    
     
     
 }

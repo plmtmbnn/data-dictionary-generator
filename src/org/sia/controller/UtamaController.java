@@ -73,13 +73,13 @@ public class UtamaController implements Initializable {
     @FXML
     private Button btnFile, btnTambah, btnDelete, btnReset, btnGenerate;
     @FXML
-    private ComboBox cbDataType;
+    private ComboBox cbDataType, cbDocumentType;
     @FXML
     private ListView listview;
     @FXML
     private TableView<Attribute> tableViewDD;
     @FXML
-    private TextField tfLength, tfAlias, tfField, tfKode, tfNamaProses, tfRelasi, tfAktivitas, tfDokumen, tfAktor, tfKodeDataDictionary;
+    private TextField tfLength, tfAlias, tfField, tfKode, tfNamaProses, tfAktivitas, tfDokumen, tfAktor, tfKodeDataDictionary;
     @FXML
     private TextArea taDescription, tfDeskripsi;
     @FXML
@@ -92,7 +92,6 @@ public class UtamaController implements Initializable {
     ObservableList<Attribute> storedItems = FXCollections.observableArrayList();
     ArrayList<String> listDataObject = new ArrayList();
 
-    Map<String, String> mapPathFile = new HashMap<>();
     Map<String, String> mapCodeDD = new HashMap<>();
     Map<String, String> mapDataObject = new HashMap<>();
     Map<String, String> mapActivity = new HashMap<>();
@@ -116,8 +115,7 @@ public class UtamaController implements Initializable {
     private String kodeProses = "";
     private String namaProses = "";
 
-    Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-
+    //construct
     public UtamaController() {
         tableViewDD = new TableView<>();
         attributeDao = new AttributeDaoImplHibernate();
@@ -125,6 +123,7 @@ public class UtamaController implements Initializable {
         dataDictonaryAttibuteDao = new DataDictionaryAttributeDaoImplHibernate();
     }
 
+    //fungsi ini untuk meload file xml yang sudah diattach
     @FXML
     private void loadFileXml(ActionEvent event) throws JAXBException {
         try {
@@ -193,8 +192,7 @@ public class UtamaController implements Initializable {
                             mapActivity.put(id, name);
                         }
                     }
-                    
-                    
+
                     Map<String, String> mapSubProcessTaskCoordinate = new HashMap<>();
                     Map<String, String> mapSubProcessDataObjectCoordinate = new HashMap<>();
 
@@ -203,9 +201,8 @@ public class UtamaController implements Initializable {
                         if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                             Element eElement = (Element) nNode;
                             Element eElementParent = (Element) eElement.getParentNode().getParentNode().getParentNode();
-                            
-                            if(eElementParent.getNodeName().equals("Activity"))
-                            {
+
+                            if (eElementParent.getNodeName().equals("Activity")) {
                                 mapSubProcessTaskCoordinate.put(eElementParent.getAttribute("Name"), eElement.getAttribute("YCoordinate"));
                             }
                         }
@@ -217,20 +214,17 @@ public class UtamaController implements Initializable {
                             Element eElement = (Element) nNode;
                             Element eElementParent = (Element) eElement.getParentNode().getParentNode().getParentNode();
                             Element eElementParent2 = (Element) eElementParent.getParentNode().getParentNode();
-                            
-                            if(eElementParent2.getNodeName().equals("ActivitySet") && eElementParent.getNodeName().equalsIgnoreCase("DataObject"))
-                            {
+
+                            if (eElementParent2.getNodeName().equals("ActivitySet") && eElementParent.getNodeName().equalsIgnoreCase("DataObject")) {
                                 mapSubProcessDataObjectCoordinate.put(eElementParent.getAttribute("Name"), mapSubProcessTaskCoordinate.get(eElementParent2.getAttribute("Name")));
                             }
                         }
                     }
-                    
-                    
-                for (Map.Entry<String, String> entry2 : mapSubProcessDataObjectCoordinate.entrySet()) {
-                    System.out.println(entry2.getKey()+ "|"+entry2.getValue());
-                }
 
-                    
+                    for (Map.Entry<String, String> entry2 : mapSubProcessDataObjectCoordinate.entrySet()) {
+                        System.out.println(entry2.getKey() + "|" + entry2.getValue());
+                    }
+
                     mapDataObject.clear();
                     mapDataObjectCoordinate.clear();
                     mapActorCoordinate.clear();
@@ -249,13 +243,11 @@ public class UtamaController implements Initializable {
                                 mapActorCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(eElement.getAttribute("YCoordinate")));
                             }
                             if (eElementParent.getNodeName().equalsIgnoreCase("DataObject")) {
-                                
-                                
-                                if(mapSubProcessDataObjectCoordinate.get(eElementParent.getAttribute("Name")) != null)
-                                {
+
+                                if (mapSubProcessDataObjectCoordinate.get(eElementParent.getAttribute("Name")) != null) {
                                     mapDataObjectCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(mapSubProcessDataObjectCoordinate.get(eElementParent.getAttribute("Name"))));
                                 } else {
-                                    mapDataObjectCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(eElement.getAttribute("YCoordinate")));                                    
+                                    mapDataObjectCoordinate.put(eElementParent.getAttribute("Name"), Integer.parseInt(eElement.getAttribute("YCoordinate")));
                                 }
                                 mapDataObject.put(id, name);
                                 listDataObject.add(name);
@@ -370,40 +362,43 @@ public class UtamaController implements Initializable {
         }
     }
 
+    //fungsi ini untuk meload list data object yang ditemukan
     private void loadListView(ArrayList<String> datas) {
         datas.forEach((newItem) -> {
             listview.getItems().add(newItem);
         });
     }
 
+    //fungsi ini untuk meread apakah data yang sudah pernah distore di database atau tidak
     private void read() {
         storedItems.clear();
         mapStoredAttributes.clear();
 
         DataDictonary availabledataDictionary = null;
         for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
-            if (tfKodeDataDictionary.getText().equalsIgnoreCase(dataDictonary.getKodeDataDictionary())) {
+            if (tfKodeDataDictionary.getText().equalsIgnoreCase(dataDictonary.getDataDictionaryCode())) {
                 availabledataDictionary = dataDictonary;
             }
-            mapDataDictionary.put(dataDictonary.getKodeDataDictionary(), dataDictonary);
+            mapDataDictionary.put(dataDictonary.getDataDictionaryCode(), dataDictonary);
         }
 
         if (availabledataDictionary == null) {
             for (Attribute attribute : attributeDao.getAllAttributes()) {
                 storedItems.add(attribute);
-                mapStoredAttributes.put(attribute.getField(), attribute.getId());
+                mapStoredAttributes.put(attribute.getAttributeName(), attribute.getId());
             }
         } else {
             for (DataDictionaryAttribute dataDictionaryAttribute : dataDictonaryAttibuteDao.getAllDataDictionaryAttributes()) {
                 if (availabledataDictionary.getId() == dataDictionaryAttribute.getDataDictionaryId()) {
                     Attribute attribute = attributeDao.getAttribute(dataDictionaryAttribute.getAttributeId());
                     storedItems.add(attribute);
-                    mapStoredAttributes.put(attribute.getField(), attribute.getId());
+                    mapStoredAttributes.put(attribute.getAttributeName(), attribute.getId());
                 }
             }
         }
     }
 
+    //fungsi ini untuk menggenerate data dictionary kebentuk word
     private void msWordGenerate(int id) throws Exception {
         XWPFDocument document = new XWPFDocument();
         try (FileOutputStream out = new FileOutputStream(new File(path + tfKodeDataDictionary.getText() + ".docx"))) {
@@ -414,11 +409,16 @@ public class UtamaController implements Initializable {
             run.addBreak();
             run.setText("Kode Data Dictionary");
             run.addTab();
-            run.setText(": " + dataDictionary.getKodeDataDictionary());
+            run.setText(": " + dataDictionary.getDataDictionaryCode());
             run.addBreak();
             run.setText("Nama Dokumen");
             run.addTab();
-            run.setText(": " + dataDictionary.getDokumentName());
+            run.setText(": " + dataDictionary.getDocumentName());
+            run.addBreak();
+            run.setText("Bentuk Data");
+            run.addTab();
+            run.addTab();
+            run.setText(": " + dataDictionary.getDataForm());
             run.addBreak();
             run.setText("Kode Proses");
             run.addTab();
@@ -441,12 +441,6 @@ public class UtamaController implements Initializable {
             run.addTab();
             run.setText(": " + dataDictionary.getActor());
             run.addBreak();
-            run.setText("Relasi");
-            run.addTab();
-            run.addTab();
-            run.addTab();
-            run.setText(": " + dataDictionary.getRelation());
-            run.addBreak();
             run.setText("Atribut");
             run.addTab();
             run.addTab();
@@ -456,7 +450,7 @@ public class UtamaController implements Initializable {
             XWPFTable table = document.createTable();
 
             XWPFTableRow tableRowOne = table.getRow(0);
-            tableRowOne.getCell(0).setText("Field");
+            tableRowOne.getCell(0).setText("Nama Atribut");
             tableRowOne.addNewTableCell().setText("Alias");
             tableRowOne.addNewTableCell().setText("Data Type");
             tableRowOne.addNewTableCell().setText("Length");
@@ -465,7 +459,7 @@ public class UtamaController implements Initializable {
             dataDictonaryAttibuteDao.getAllDataDictionaryAttributes().stream().filter((allDataDictionaryAttribute)
                     -> (allDataDictionaryAttribute.getDataDictionaryId() == id)).forEachOrdered((allDataDictionaryAttribute) -> {
                 XWPFTableRow tableRows = table.createRow();
-                tableRows.getCell(0).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getField());
+                tableRows.getCell(0).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getAttributeName());
                 tableRows.getCell(1).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getAlias());
                 tableRows.getCell(2).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getDataType());
                 tableRows.getCell(3).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getLength());
@@ -485,9 +479,10 @@ public class UtamaController implements Initializable {
 
             document.write(out);
         }
-        System.out.println("document written successfully");
+        System.out.println("Data dictionary berhasil digenerate dalam bentuk word!");
     }
 
+    //fungsi ini untuk meload detail atribut berdasarkan data object yang diklik pada list data object
     private void loadAttributesBaseOnDataObject(DataDictonary dataDictionary, String newValue) {
         items.clear();
         String[] split = mapDeskripsi.get(newValue).split("#");
@@ -503,7 +498,7 @@ public class UtamaController implements Initializable {
                 } else {
                     if (mapStoredAttributes.get(split[i]) != null) {
                         System.out.println(mapStoredAttributes.get(split[i]));
-                        if (split[i].equalsIgnoreCase(attributeDao.getAttribute(mapStoredAttributes.get(split[i])).getField())) {
+                        if (split[i].equalsIgnoreCase(attributeDao.getAttribute(mapStoredAttributes.get(split[i])).getAttributeName())) {
                             items.add(attributeDao.getAttribute(mapStoredAttributes.get(split[i])));
                         }
                     } else {
@@ -517,6 +512,7 @@ public class UtamaController implements Initializable {
         }
     }
 
+    //fungsi ini untuk menampilkan detail item data object yang diklik dan mengisi semua kolom
     private void selectListViewItem() {
         clearTable();
         data = null;
@@ -529,17 +525,16 @@ public class UtamaController implements Initializable {
                             ObservableValue<? extends String> observable,
                             String oldValue, String newValue) {
                         tfDeskripsi.clear();
-                        tfRelasi.clear();
                         System.out.println(newValue);
                         if (mapDataDictionary.get(mapCodeDD.get(newValue)) != null
-                                && mapCodeDD.get(newValue).equalsIgnoreCase(mapDataDictionary.get(mapCodeDD.get(newValue)).getKodeDataDictionary())) {
-                            tfDokumen.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getDokumentName());
+                                && mapCodeDD.get(newValue).equalsIgnoreCase(mapDataDictionary.get(mapCodeDD.get(newValue)).getDataDictionaryCode())) {
+                            tfDokumen.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getDocumentName());
+                            cbDocumentType.setValue(mapDataDictionary.get(mapCodeDD.get(newValue)).getDataForm());
                             tfAktivitas.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getActivity());
                             tfAktor.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getActor());
-                            tfKodeDataDictionary.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getKodeDataDictionary());
+                            tfKodeDataDictionary.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getDataDictionaryCode());
                             tfKode.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getProcessCode());
                             tfNamaProses.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getProcessName());
-                            tfRelasi.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getRelation());
                             tfDeskripsi.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getDescription());
                             if (newValue != null) {
                                 loadAttributesBaseOnDataObject(mapDataDictionary.get(mapCodeDD.get(newValue)), newValue);
@@ -560,6 +555,7 @@ public class UtamaController implements Initializable {
         loadTable();
     }
 
+    //fungsi ini untuk meload detail atribut yang diklik ke kolom atribut, difungsikan untuk mengadd atau mengedit atribut.
     private void selectTableViewItem() {
         tableViewDD.getSelectionModel().setCellSelectionEnabled(true);
         ObservableList selectedCells = tableViewDD.getSelectionModel().getSelectedCells();
@@ -572,13 +568,13 @@ public class UtamaController implements Initializable {
                 System.out.println(cellValue);
                 if (cellValue != null) {
                     for (Attribute item : items) {
-                        if (cellValue.equalsIgnoreCase(item.getField())) {
-                            tfField.setText(item.getField());
+                        if (cellValue.equalsIgnoreCase(item.getAttributeName())) {
+                            tfField.setText(item.getAttributeName());
                             tfAlias.setText(item.getAlias());
                             cbDataType.setValue(item.getDataType());
                             tfLength.setText(item.getLength());
                             taDescription.setText(item.getDescription());
-                            data = new Attribute(item.getId(), item.getField(), item.getDataType(), item.getLength(),
+                            data = new Attribute(item.getId(), item.getAttributeName(), item.getDataType(), item.getLength(),
                                     item.getDescription(), item.getAlias(),
                                     item.getCreatedAt(),
                                     item.getUpdatedAt());
@@ -589,26 +585,32 @@ public class UtamaController implements Initializable {
         });
     }
 
+    //fungsi ini untuk add atau update atribut
     @FXML
     private void addUpdateAtrributes(ActionEvent event) {
         ArrayList<String> errors = new ArrayList<>();
-        if (tfField.getText().equalsIgnoreCase("")) {
-            errors.add("Kolom field tidak boleh kosong");
+        if (tfField.getText().isEmpty()) {
+            errors.add("Field tidak boleh kosong!");
         }
-        if(cbDataType.getSelectionModel().isEmpty())
-        {
-            errors.add("Kolom tipe data harus dipilih");        
-        }
-        if (tfLength.getText().isEmpty()) {
-            errors.add("Kolom length tidak boleh kosong");
-        }
-        if (!tfLength.getText().matches("\\d*")) {
-            errors.add("Kolom length harus integer!");
+        if (cbDataType.getSelectionModel().isEmpty()) {
+            errors.add("Tipe data harus dipilih!");
+        } else {
+            if (tfLength.getText().isEmpty()) {
+                errors.add("Length tidak boleh kosong");
+            } else {
+                if (!tfLength.getText().matches("\\d*")) {
+                    errors.add("Inputan length harus integer!");
+                } else {
+                    if (Integer.parseInt(tfLength.getText()) > Integer.parseInt(mapDataType.get(cbDataType.getValue().toString()))) {
+                        errors.add("Length tipe data " + cbDataType.getValue().toString() + " tidak boleh lebih dari " + mapDataType.get(cbDataType.getValue().toString()) + "!");
+                    }
+                }
+            }
         }
 
         if (errors.size() > 0) {
             Alert test = new Alert(Alert.AlertType.WARNING);
-            test.setTitle("Notification");
+            test.setTitle("Peringatan");
             test.setHeaderText("Atribut gagal ditambahkan!");
             String message = "";
             for (String error : errors) {
@@ -617,86 +619,76 @@ public class UtamaController implements Initializable {
             test.setContentText(message);
             test.showAndWait();
         } else {
-            if (tfField.getText().equalsIgnoreCase("") || tfLength.getText().equalsIgnoreCase("")) {
-                Alert test = new Alert(Alert.AlertType.WARNING);
-                test.setTitle("Notification");
-                test.setHeaderText("Gagal ditambahkan!");
-                test.showAndWait();
-            } else {
-                if (taDescription.getText().equalsIgnoreCase("")) {
-                    taDescription.setText("-");
-                }
-                if (tfAlias.getText().equalsIgnoreCase("")) {
-                    tfAlias.setText("-");
-                }
-                if (data != null) {
-                    int id = 0;
-                    for (Attribute item : items) {
-                        if (item.getField().equalsIgnoreCase(cellValue)) {
-                            try {
-                                items.get(id).setField(tfField.getText());
-                                items.get(id).setDataType(cbDataType.getValue().toString());
-                                items.get(id).setDescription(taDescription.getText());
-                                items.get(id).setLength(tfLength.getText());
-                                items.get(id).setAlias(tfAlias.getText());
-                                tfField.clear();
-                                tfAlias.clear();
-                                tfLength.clear();
-                                taDescription.clear();
-                            } catch (Exception e) {
-                            }
-                        }
-                        id++;
-                    }
-                } else {
-                    items.add(new Attribute(
-                            items.size() + 1,
-                            tfField.getText(),
-                            cbDataType.getValue().toString(),
-                            tfLength.getText(),
-                            taDescription.getText(),
-                            tfAlias.getText(),
-                            null,
-                            null));
-
-                    tfField.clear();
-                    tfAlias.clear();
-                    tfLength.clear();
-                    taDescription.clear();
-                }
-                data = null;
-                loadTable();
+            if (taDescription.getText().equalsIgnoreCase("")) {
+                taDescription.setText("-");
             }
+            if (tfAlias.getText().equalsIgnoreCase("")) {
+                tfAlias.setText("-");
+            }
+            if (data != null) {
+                int id = 0;
+                for (Attribute item : items) {
+                    if (item.getAttributeName().equalsIgnoreCase(cellValue)) {
+                        try {
+                            items.get(id).setAttributeName(tfField.getText());
+                            items.get(id).setDataType(cbDataType.getValue().toString());
+                            items.get(id).setDescription(taDescription.getText());
+                            items.get(id).setLength(tfLength.getText());
+                            items.get(id).setAlias(tfAlias.getText());
+                            tfField.clear();
+                            tfAlias.clear();
+                            tfLength.clear();
+                            taDescription.clear();
+                        } catch (Exception e) {
+                        }
+                    }
+                    id++;
+                }
+            } else {
+                items.add(new Attribute(
+                        items.size() + 1,
+                        tfField.getText(),
+                        cbDataType.getValue().toString(),
+                        tfLength.getText(),
+                        taDescription.getText(),
+                        tfAlias.getText(),
+                        null,
+                        null));
+
+                tfField.clear();
+                tfAlias.clear();
+                tfLength.clear();
+                taDescription.clear();
+            }
+            data = null;
+            loadTable();
         }
     }
 
+    //fungsi ini untuk meload daftar value tipe data yang digunakan
     private void loadDataType() {
-        mapDataType.put("Boolean","1");
-        mapDataType.put("String","5000");
-        mapDataType.put("Integer","11");
-        mapDataType.put("Float","7.2");
-        mapDataType.put("Double","16.2");
-        mapDataType.put("Decimal","18.2");
-        mapDataType.put("Date","-");
-        mapDataType.put("Time","-");
-        mapDataType.put("Date Time","-");
-        mapDataType.put("Currency","-");
-        
+        mapDataType.put("Boolean", "1");
+        mapDataType.put("String", "4294967295");
+        mapDataType.put("Integer", "11");
+        mapDataType.put("Double", "18");
+        mapDataType.put("Date", "10");
+        mapDataType.put("Currency", "15");
+
         for (Map.Entry<String, String> entry2 : mapDataType.entrySet()) {
             options.add(entry2.getKey());
         }
-
         options.forEach((option) -> {
             cbDataType.getItems().add(option);
         });
     }
 
+    //fungsi ini untuk store data dictionary dan atributnya ke database
     private void write() throws Exception {
 //====================================DATA DICTIONARY======================================================        
         DataDictonary dataDict = new DataDictonary();
-        DataDictonary newDataDictonary = new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(),
+        DataDictonary newDataDictonary = new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(), cbDocumentType.getValue().toString(),
                 tfKode.getText(), tfNamaProses.getText(), tfAktivitas.getText(),
-                tfAktor.getText(), tfRelasi.getText(), tfDeskripsi.getText(),
+                tfAktor.getText(), tfDeskripsi.getText(),
                 null,
                 null);
         int flagDD = 0;
@@ -705,7 +697,7 @@ public class UtamaController implements Initializable {
             dataDict = dataDictionaryDao.saveDataDictonary(newDataDictonary);
         } else {
             for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
-                if (dataDictonary.getKodeDataDictionary().equals(tfKodeDataDictionary.getText())) {
+                if (dataDictonary.getDataDictionaryCode().equals(tfKodeDataDictionary.getText())) {
                     flagDD++;
                     ArrayList<Integer> checkUpdated = new ArrayList();
 
@@ -718,16 +710,16 @@ public class UtamaController implements Initializable {
                     if (!dataDictonary.getDescription().equals(newDataDictonary.getDescription())) {
                         checkUpdated.add(1);
                     }
-                    if (!dataDictonary.getDokumentName().equals(newDataDictonary.getDokumentName())) {
+                    if (!dataDictonary.getDocumentName().equals(newDataDictonary.getDocumentName())) {
+                        checkUpdated.add(1);
+                    }
+                    if (!dataDictonary.getDataForm().equals(newDataDictonary.getDataForm())) {
                         checkUpdated.add(1);
                     }
                     if (!dataDictonary.getProcessCode().equals(newDataDictonary.getProcessCode())) {
                         checkUpdated.add(1);
                     }
                     if (!dataDictonary.getProcessName().equals(newDataDictonary.getProcessName())) {
-                        checkUpdated.add(1);
-                    }
-                    if (!dataDictonary.getRelation().equals(newDataDictonary.getRelation())) {
                         checkUpdated.add(1);
                     }
                     if (checkUpdated.isEmpty()) {
@@ -759,7 +751,7 @@ public class UtamaController implements Initializable {
             items.forEach((item) -> {
                 int flag = 0;
                 for (Attribute attribute : attributes) {
-                    if (attribute.getField().equalsIgnoreCase(item.getField())) {
+                    if (attribute.getAttributeName().equalsIgnoreCase(item.getAttributeName())) {
                         ArrayList<Integer> checkUpdated = new ArrayList();
                         if (!item.getAlias().equals(attribute.getAlias())) {
                             checkUpdated.add(1);
@@ -770,7 +762,7 @@ public class UtamaController implements Initializable {
                         if (!item.getDescription().equals(attribute.getDescription())) {
                             checkUpdated.add(1);
                         }
-                        if (!item.getField().equals(attribute.getField())) {
+                        if (!item.getAttributeName().equals(attribute.getAttributeName())) {
                             checkUpdated.add(1);
                         }
                         if (!item.getLength().equals(attribute.getLength())) {
@@ -805,7 +797,7 @@ public class UtamaController implements Initializable {
 //==========================================DD - A=========================================================
         int idDataDictionary = 0;
         for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
-            if (dataDictonary.getKodeDataDictionary().equalsIgnoreCase(tfKodeDataDictionary.getText())) {
+            if (dataDictonary.getDataDictionaryCode().equalsIgnoreCase(tfKodeDataDictionary.getText())) {
                 idDataDictionary = dataDictonary.getId();
             }
         }
@@ -821,7 +813,7 @@ public class UtamaController implements Initializable {
             if (listIdAttributes.isEmpty()) {
                 items.forEach((item) -> {
                     for (Attribute attribute : currentAtributes) {
-                        if (item.getField().equalsIgnoreCase(attribute.getField())) {
+                        if (item.getAttributeName().equalsIgnoreCase(attribute.getAttributeName())) {
                             dataDictonaryAttibuteDao.saveDataDictionaryAttribute(
                                     new DataDictionaryAttribute(0, id, attribute.getId(),
                                             new Timestamp(System.currentTimeMillis()),
@@ -840,6 +832,7 @@ public class UtamaController implements Initializable {
         System.out.println("Sukses fungsi write!");
     }
 
+    //fungsi ini untuk generate data dictionary ke bentuk JSON
     @FXML
     private void generateToJSON() throws Exception {
         ArrayList<String> errors = new ArrayList<>();
@@ -858,9 +851,10 @@ public class UtamaController implements Initializable {
         if (tfAktor.getText().equalsIgnoreCase("")) {
             errors.add("Kolom Aktor tidak boleh kosong");
         }
-        if (tfRelasi.getText().equalsIgnoreCase("")) {
-            errors.add("Kolom relasi tidak boleh kosong");
+        if (cbDocumentType.getSelectionModel().isEmpty()) {
+            errors.add("Tipe dokumen tidak boleh kosong");
         }
+
         if (errors.size() > 0) {
             Alert test = new Alert(Alert.AlertType.WARNING);
             test.setTitle("Notification");
@@ -872,71 +866,78 @@ public class UtamaController implements Initializable {
             test.setContentText(message);
             test.showAndWait();
         } else {
-            if (taDescription.getText().equalsIgnoreCase("")) {
-                taDescription.setText("-");
+
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Konfirmasi");
+            confirm.setHeaderText("Klik OK untuk generate data dictionary");
+            confirm.showAndWait();
+            if (confirm.getResult().getText().equals("OK")) {
+                if (taDescription.getText().equalsIgnoreCase("")) {
+                    taDescription.setText("-");
+                }
+                
+                write();
+                read();
+                
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                ArrayList<Attribute> generatedAttributes = new ArrayList();
+
+                JSONObject obj = new JSONObject();
+                obj.put("dataDictionaryCode", tfKodeDataDictionary.getText());
+                obj.put("documentName", tfDokumen.getText());
+                obj.put("dataForm", cbDocumentType.getValue().toString());
+                obj.put("processCode", tfKode.getText());
+                obj.put("processName", tfNamaProses.getText());
+                obj.put("activity", tfAktivitas.getText());
+                obj.put("actor", tfAktor.getText());
+                obj.put("description", tfDeskripsi.getText());
+
+                JSONArray list = new JSONArray();
+                items.forEach((item) -> {
+                    JSONObject obj2 = new JSONObject();
+                    obj2.put("attributeName", item.getAttributeName());
+                    obj2.put("dataType", item.getDataType());
+                    obj2.put("length", item.getLength());
+                    obj2.put("description", item.getDescription());
+                    obj2.put("alias", item.getAlias());
+                    list.add(obj2);
+                    generatedAttributes.add(new Attribute(item.getId(), item.getAttributeName(), item.getDataType(),
+                            item.getLength(), item.getDescription(), item.getAlias(),
+                            item.getCreatedAt(),
+                            item.getUpdatedAt()));
+
+                });
+                obj.put("attributes", list);
+                String jsonStringss = gson.toJson(obj);
+
+                System.out.print(jsonStringss);
+
+                try (FileWriter file = new FileWriter(path + tfKodeDataDictionary.getText() + ".json")) {
+                    file.write(jsonStringss);
+                    file.flush();
+                } catch (IOException e) {
+                }
+
+                reset();
+                tfDeskripsi.clear();
+                tfAktivitas.clear();
+                tfAktor.clear();
+                tfKode.clear();
+                tfKodeDataDictionary.clear();
+                tfNamaProses.clear();
+                tfDokumen.clear();
+
+                Alert test = new Alert(Alert.AlertType.INFORMATION);
+                test.setTitle("Notification");
+                test.setHeaderText("Berhasil digenerate!");
+                test.showAndWait();
+                clearTable();
+                cellValue = null;
             }
-
-            write();
-            read();
-
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            ArrayList<Attribute> generatedAttributes = new ArrayList();
-
-            JSONObject obj = new JSONObject();
-            obj.put("dataDictionaryCode", tfKodeDataDictionary.getText());
-            obj.put("documentName", tfDokumen.getText());
-            obj.put("processCode", tfKode.getText());
-            obj.put("processName", tfNamaProses.getText());
-            obj.put("activity", tfAktivitas.getText());
-            obj.put("actor", tfAktor.getText());
-            obj.put("relation", tfRelasi.getText());
-            obj.put("description", tfDeskripsi.getText());
-
-            JSONArray list = new JSONArray();
-            items.forEach((item) -> {
-                JSONObject obj2 = new JSONObject();
-                obj2.put("field", item.getField());
-                obj2.put("dataType", item.getDataType());
-                obj2.put("length", item.getLength());
-                obj2.put("description", item.getDescription());
-                obj2.put("alias", item.getAlias());
-                list.add(obj2);
-                generatedAttributes.add(new Attribute(item.getId(), item.getField(), item.getDataType(),
-                        item.getLength(), item.getDescription(), item.getAlias(),
-                        item.getCreatedAt(),
-                        item.getUpdatedAt()));
-
-            });
-            obj.put("attributes", list);
-            String jsonStringss = gson.toJson(obj);
-
-            System.out.print(jsonStringss);
-
-            try (FileWriter file = new FileWriter(path + tfKodeDataDictionary.getText() + ".json")) {
-                file.write(jsonStringss);
-                file.flush();
-            } catch (IOException e) {
-            }
-
-            reset();
-            tfRelasi.clear();
-            tfDeskripsi.clear();
-            tfAktivitas.clear();
-            tfAktor.clear();
-            tfKode.clear();
-            tfKodeDataDictionary.clear();
-            tfNamaProses.clear();
-            tfDokumen.clear();
-
-            Alert test = new Alert(Alert.AlertType.INFORMATION);
-            test.setTitle("Notification");
-            test.setHeaderText("Berhasil digenerate!");
-            test.showAndWait();
-            clearTable();
-            cellValue = null;
         }
     }
 
+    //fungsi ini fungsi yang pertama dijalankan, sehingga inisialisasi dapat dilakukan disini
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         tableViewDD.setEditable(true);
@@ -946,6 +947,11 @@ public class UtamaController implements Initializable {
         description.setCellValueFactory(new PropertyValueFactory<Attribute, String>("description"));
         alias.setCellValueFactory(new PropertyValueFactory<Attribute, String>("alias"));
 
+        cbDocumentType.getItems().add("Laporan tercetak");
+        cbDocumentType.getItems().add("Dokumen tercetak");
+        cbDocumentType.getItems().add("Formulir");
+        cbDocumentType.getItems().add("Digital");
+        
         loadTable();
         loadDataType();
         selectListViewItem();
@@ -973,13 +979,14 @@ public class UtamaController implements Initializable {
         btnReset.setGraphic(iv3);
     }
 
+    //fungsi ini untuk menghapus atribut yang ada pada list atribut
     @FXML
     private void deleteData() {
         if (cellValue.equalsIgnoreCase("") || cellValue == null) {
         } else {
             int id = 0;
             for (Attribute item : items) {
-                if (item.getField().equalsIgnoreCase(cellValue)) {
+                if (item.getAttributeName().equalsIgnoreCase(cellValue)) {
                     items.remove(id);
                 }
                 id++;
@@ -990,11 +997,13 @@ public class UtamaController implements Initializable {
         }
     }
 
+    //fungsi ini untuk mereset semua kolom input
     @FXML
     private void resetForm() {
         reset();
     }
 
+    //fungsi ini untuk mereset semua kolom input
     private void reset() {
         tfField.clear();
         tfAlias.clear();
@@ -1004,16 +1013,19 @@ public class UtamaController implements Initializable {
         cellValue = null;
     }
 
+    //fungsi ini untuk membersihkan isi table atribut
     private void clearTable() {
         tableViewDD.getItems().clear();
     }
 
+    //fungsi ini untuk meload atribut dari data object ke table
     private void loadTable() {
         tableViewDD.refresh();
         tableViewDD.sort();
         tableViewDD.setItems(items);
     }
 
+    //fungsi ini untuk membersihkan semua kolom input untuk atribut
     private void clearAttributeForm() {
         tfField.clear();
         tfAlias.clear();
@@ -1021,6 +1033,7 @@ public class UtamaController implements Initializable {
         tfDeskripsi.clear();
     }
 
+    //fungsi ini untuk menampilkan length berdasarkan tipe data yang dipilih/klik
     private void selectComboBoxItem() {
         cbDataType.getSelectionModel().selectedItemProperty()
                 .addListener(new ChangeListener<String>() {

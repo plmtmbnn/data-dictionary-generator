@@ -15,5 +15,8 @@ public class Test {
     public static void main(String[] args) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         System.out.println(timestamp);
+        double fl;
+        fl = 1234567.987654321;
+        System.out.println(fl);
     }
 }

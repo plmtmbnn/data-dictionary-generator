@@ -64,7 +64,7 @@ public class DataDictionaryDaoImplHibernate implements DataDictionaryDao{
        DataDictonary dDictionary = null;
         for(DataDictonary dd : getAllDataDictonaries())
         {
-            if(dataDictonary.getKodeDataDictionary().equalsIgnoreCase(dd.getKodeDataDictionary()))
+            if(dataDictonary.getDataDictionaryCode().equalsIgnoreCase(dd.getDataDictionaryCode()))
             {
                 Session session = HibernateUtil.getSession();
                 session.getTransaction().begin();

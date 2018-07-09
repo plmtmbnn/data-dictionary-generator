@@ -29,8 +29,8 @@ public class Attribute {
     @Id
     @Column(name = "idAttribute")
     private int id;
-    @Column(name = "field")
-    private String field;
+    @Column(name = "attributeName")
+    private String attributeName;
     @Column(name = "dataType")
     private String dataType;
     @Column(name = "length")
@@ -47,9 +47,9 @@ public class Attribute {
     public Attribute() {
     }
 
-    public Attribute(int id, String field, String dataType, String length, String description, String alias, Date createdAt, Date updatedAt) {
+    public Attribute(int id, String attributeName, String dataType, String length, String description, String alias, Date createdAt, Date updatedAt) {
         this.id = id;
-        this.field = field;
+        this.attributeName = attributeName;
         this.dataType = dataType;
         this.length = length;
         this.description = description;
@@ -66,12 +66,12 @@ public class Attribute {
         this.id = id;
     }
 
-    public String getField() {
-        return field;
+    public String getAttributeName() {
+        return attributeName;
     }
 
-    public void setField(String field) {
-        this.field = field;
+    public void setAttributeName(String attributeName) {
+        this.attributeName = attributeName;
     }
 
     public String getDataType() {
