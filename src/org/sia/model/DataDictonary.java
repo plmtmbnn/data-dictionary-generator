@@ -34,6 +34,8 @@ public class DataDictonary {
     private String activity;
     @Column(name = "actor")    
     private String actor;
+    @Column(name = "relation")    
+    private String relation;
     @Column(name = "description")    
     private String description;          
     @Column(name = "createdAt")
@@ -44,7 +46,7 @@ public class DataDictonary {
     public DataDictonary() {
     }
 
-    public DataDictonary(int id, String dataDictionaryCode, String documentName, String dataForm, String processCode, String processName, String activity, String actor, String description, Date createdAt, Date updatedAt) {
+    public DataDictonary(int id, String dataDictionaryCode, String documentName, String dataForm, String processCode, String processName, String activity, String actor, String relation, String description, Date createdAt, Date updatedAt) {
         this.id = id;
         this.dataDictionaryCode = dataDictionaryCode;
         this.documentName = documentName;
@@ -53,13 +55,12 @@ public class DataDictonary {
         this.processName = processName;
         this.activity = activity;
         this.actor = actor;
+        this.relation = relation;
         this.description = description;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
-    
-    
     public int getId() {
         return id;
     }
@@ -124,6 +125,14 @@ public class DataDictonary {
         this.actor = actor;
     }
 
+    public String getRelation() {
+        return relation;
+    }
+
+    public void setRelation(String relation) {
+        this.relation = relation;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -148,6 +157,5 @@ public class DataDictonary {
         this.updatedAt = updatedAt;
     }
 
-    
     
 }

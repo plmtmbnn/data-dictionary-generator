@@ -79,7 +79,7 @@ public class UtamaController implements Initializable {
     @FXML
     private TableView<Attribute> tableViewDD;
     @FXML
-    private TextField tfLength, tfAlias, tfField, tfKode, tfNamaProses, tfAktivitas, tfDokumen, tfAktor, tfKodeDataDictionary;
+    private TextField tfLength, tfAlias, tfField, tfKode, tfNamaProses, tfAktivitas, tfDokumen, tfAktor, tfKodeDataDictionary, tfRelasi;
     @FXML
     private TextArea taDescription, tfDeskripsi;
     @FXML
@@ -357,6 +357,7 @@ public class UtamaController implements Initializable {
             for (Map.Entry<String, String> entry2 : mapActivity.entrySet()) {
                 if (entry2.getKey().equalsIgnoreCase(entry.getKey())) {
                     mapDataObjectActivity.put(entry.getValue(), entry2.getValue());
+                    System.out.println(entry.getValue() + " " + entry2.getValue());
                 }
             }
         }
@@ -385,6 +386,7 @@ public class UtamaController implements Initializable {
         if (availabledataDictionary == null) {
             for (Attribute attribute : attributeDao.getAllAttributes()) {
                 storedItems.add(attribute);
+                System.out.println(attribute.getAttributeName());
                 mapStoredAttributes.put(attribute.getAttributeName(), attribute.getId());
             }
         } else {
@@ -487,21 +489,28 @@ public class UtamaController implements Initializable {
         items.clear();
         String[] split = mapDeskripsi.get(newValue).split("#");
         if (dataDictionary != null) {
+            System.out.println("DD is found");
             for (DataDictionaryAttribute dda : dataDictonaryAttibuteDao.getAllDataDictionaryAttributes()) {
                 if (dda.getDataDictionaryId() == dataDictionary.getId()) {
                     items.add(attributeDao.getAttribute(dda.getAttributeId()));
+                    System.out.println(attributeDao.getAttribute(dda.getAttributeId()));
                 }
             }
         } else {
+            System.out.println("DD is not found");
             for (int i = 0; i < split.length; i++) {
                 if (i == 0) {
                 } else {
                     if (mapStoredAttributes.get(split[i]) != null) {
+                        System.out.println("Atributes are available in db");
                         System.out.println(mapStoredAttributes.get(split[i]));
                         if (split[i].equalsIgnoreCase(attributeDao.getAttribute(mapStoredAttributes.get(split[i])).getAttributeName())) {
                             items.add(attributeDao.getAttribute(mapStoredAttributes.get(split[i])));
                         }
                     } else {
+                        System.out.println("Atributes are not available in db");
+                        System.out.println(split[i]);
+                        //int id, String attributeName, String dataType, String length, String description, String alias, Date createdAt, Date updatedAt
                         items.add(new Attribute(
                                 attributeDao.getAllAttributes().size() + 1, split[i], "", "", "", "",
                                 null,
@@ -517,15 +526,14 @@ public class UtamaController implements Initializable {
         clearTable();
         data = null;
         tableViewDD.getSelectionModel().setCellSelectionEnabled(false);
-        data = null;
         reset();
         listview.getSelectionModel().selectedItemProperty()
                 .addListener(new ChangeListener<String>() {
                     public void changed(
                             ObservableValue<? extends String> observable,
                             String oldValue, String newValue) {
+                        tfRelasi.clear();
                         tfDeskripsi.clear();
-                        System.out.println(newValue);
                         if (mapDataDictionary.get(mapCodeDD.get(newValue)) != null
                                 && mapCodeDD.get(newValue).equalsIgnoreCase(mapDataDictionary.get(mapCodeDD.get(newValue)).getDataDictionaryCode())) {
                             tfDokumen.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getDocumentName());
@@ -534,6 +542,7 @@ public class UtamaController implements Initializable {
                             tfAktor.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getActor());
                             tfKodeDataDictionary.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getDataDictionaryCode());
                             tfKode.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getProcessCode());
+                            tfRelasi.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getRelation());
                             tfNamaProses.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getProcessName());
                             tfDeskripsi.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getDescription());
                             if (newValue != null) {
@@ -688,7 +697,7 @@ public class UtamaController implements Initializable {
         DataDictonary dataDict = new DataDictonary();
         DataDictonary newDataDictonary = new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(), cbDocumentType.getValue().toString(),
                 tfKode.getText(), tfNamaProses.getText(), tfAktivitas.getText(),
-                tfAktor.getText(), tfDeskripsi.getText(),
+                tfAktor.getText(), tfRelasi.getText(), tfDeskripsi.getText(),
                 null,
                 null);
         int flagDD = 0;
@@ -875,10 +884,10 @@ public class UtamaController implements Initializable {
                 if (taDescription.getText().equalsIgnoreCase("")) {
                     taDescription.setText("-");
                 }
-                
+
                 write();
                 read();
-                
+
                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
                 ArrayList<Attribute> generatedAttributes = new ArrayList();
 
@@ -890,6 +899,7 @@ public class UtamaController implements Initializable {
                 obj.put("processName", tfNamaProses.getText());
                 obj.put("activity", tfAktivitas.getText());
                 obj.put("actor", tfAktor.getText());
+                obj.put("relation", tfRelasi.getText());
                 obj.put("description", tfDeskripsi.getText());
 
                 JSONArray list = new JSONArray();
@@ -919,6 +929,7 @@ public class UtamaController implements Initializable {
                 }
 
                 reset();
+                tfRelasi.clear();
                 tfDeskripsi.clear();
                 tfAktivitas.clear();
                 tfAktor.clear();
@@ -941,7 +952,7 @@ public class UtamaController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         tableViewDD.setEditable(true);
-        field.setCellValueFactory(new PropertyValueFactory<Attribute, String>("field"));
+        field.setCellValueFactory(new PropertyValueFactory<Attribute, String>("attributeName"));
         dataType.setCellValueFactory(new PropertyValueFactory<Attribute, String>("dataType"));
         length.setCellValueFactory(new PropertyValueFactory<Attribute, String>("length"));
         description.setCellValueFactory(new PropertyValueFactory<Attribute, String>("description"));
@@ -951,7 +962,7 @@ public class UtamaController implements Initializable {
         cbDocumentType.getItems().add("Dokumen tercetak");
         cbDocumentType.getItems().add("Formulir");
         cbDocumentType.getItems().add("Digital");
-        
+
         loadTable();
         loadDataType();
         selectListViewItem();
