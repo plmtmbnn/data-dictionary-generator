@@ -6,6 +6,8 @@
 package org.sia.driver;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -18,5 +20,17 @@ public class Test {
         double fl;
         fl = 1234567.987654321;
         System.out.println(fl);
+        String st = "BP-DDiak-04-01";
+        String cb[] = st.split("BP-");
+        System.out.println(cb[1]);
+                Map<Integer, Integer> listIdDD = new HashMap<>();
+                listIdDD.put(23,23);
+                if (listIdDD.get(2) == null) {
+                    System.out.println("null");
+        }else
+                {
+                    System.out.println("ada");
+                }
+
     }
 }

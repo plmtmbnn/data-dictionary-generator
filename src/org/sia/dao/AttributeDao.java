@@ -10,4 +10,5 @@ public interface AttributeDao {
     public List<Attribute> getAllAttributes();
     public void deleteAttribute(Attribute attribute);
     public void updateAttribute(Attribute attribute);
+
 }

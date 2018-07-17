@@ -251,7 +251,8 @@ public class UtamaController implements Initializable {
                                 }
                                 mapDataObject.put(id, name);
                                 listDataObject.add(name);
-                                String codeDD = "DD-" + splits[0] + "-" + String.format("%03d", num);
+                                String code[] = splits[0].split("BP-");
+                                String codeDD = "DD-" + code[1] + "-" + String.format("%03d", num);
                                 mapCodeDD.put(name, codeDD);
                                 num++;
                             }
@@ -373,7 +374,7 @@ public class UtamaController implements Initializable {
     //fungsi ini untuk meread apakah data yang sudah pernah distore di database atau tidak
     private void read() {
         storedItems.clear();
-        mapStoredAttributes.clear();
+//        mapStoredAttributes.clear();
 
         DataDictonary availabledataDictionary = null;
         for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
@@ -386,7 +387,6 @@ public class UtamaController implements Initializable {
         if (availabledataDictionary == null) {
             for (Attribute attribute : attributeDao.getAllAttributes()) {
                 storedItems.add(attribute);
-                System.out.println(attribute.getAttributeName());
                 mapStoredAttributes.put(attribute.getAttributeName(), attribute.getId());
             }
         } else {
@@ -443,11 +443,17 @@ public class UtamaController implements Initializable {
             run.addTab();
             run.setText(": " + dataDictionary.getActor());
             run.addBreak();
+            run.setText("Relasi");
+            run.addTab();
+            run.addTab();
+            run.addTab();
+            run.setText(": " + dataDictionary.getRelation());
+            run.addBreak();
             run.setText("Atribut");
             run.addTab();
             run.addTab();
             run.addTab();
-            run.setText(":");
+            run.setText("");
 
             XWPFTable table = document.createTable();
 
@@ -489,7 +495,6 @@ public class UtamaController implements Initializable {
         items.clear();
         String[] split = mapDeskripsi.get(newValue).split("#");
         if (dataDictionary != null) {
-            System.out.println("DD is found");
             for (DataDictionaryAttribute dda : dataDictonaryAttibuteDao.getAllDataDictionaryAttributes()) {
                 if (dda.getDataDictionaryId() == dataDictionary.getId()) {
                     items.add(attributeDao.getAttribute(dda.getAttributeId()));
@@ -497,19 +502,15 @@ public class UtamaController implements Initializable {
                 }
             }
         } else {
-            System.out.println("DD is not found");
             for (int i = 0; i < split.length; i++) {
                 if (i == 0) {
                 } else {
                     if (mapStoredAttributes.get(split[i]) != null) {
-                        System.out.println("Atributes are available in db");
                         System.out.println(mapStoredAttributes.get(split[i]));
                         if (split[i].equalsIgnoreCase(attributeDao.getAttribute(mapStoredAttributes.get(split[i])).getAttributeName())) {
                             items.add(attributeDao.getAttribute(mapStoredAttributes.get(split[i])));
                         }
                     } else {
-                        System.out.println("Atributes are not available in db");
-                        System.out.println(split[i]);
                         //int id, String attributeName, String dataType, String length, String description, String alias, Date createdAt, Date updatedAt
                         items.add(new Attribute(
                                 attributeDao.getAllAttributes().size() + 1, split[i], "", "", "", "",
@@ -599,7 +600,7 @@ public class UtamaController implements Initializable {
     private void addUpdateAtrributes(ActionEvent event) {
         ArrayList<String> errors = new ArrayList<>();
         if (tfField.getText().isEmpty()) {
-            errors.add("Field tidak boleh kosong!");
+            errors.add("Nama atribut tidak boleh kosong!");
         }
         if (cbDataType.getSelectionModel().isEmpty()) {
             errors.add("Tipe data harus dipilih!");
@@ -610,9 +611,18 @@ public class UtamaController implements Initializable {
                 if (!tfLength.getText().matches("\\d*")) {
                     errors.add("Inputan length harus integer!");
                 } else {
-                    if (Integer.parseInt(tfLength.getText()) > Integer.parseInt(mapDataType.get(cbDataType.getValue().toString()))) {
-                        errors.add("Length tipe data " + cbDataType.getValue().toString() + " tidak boleh lebih dari " + mapDataType.get(cbDataType.getValue().toString()) + "!");
+                    if (cbDataType.getValue().toString().equals("Boolean")
+                            && Integer.parseInt(tfLength.getText()) != Integer.parseInt(mapDataType.get(cbDataType.getValue().toString()))) {
+                        errors.add("Jumlah length Boolean yang diizinkan 1. (T/F)");
+                    } else if (cbDataType.getValue().toString().equals("Date")
+                            && Integer.parseInt(tfLength.getText()) != Integer.parseInt(mapDataType.get(cbDataType.getValue().toString()))) {
+                        errors.add("Jumlah length yang Date diizinkan 10. (DD-MM-YYYY)");
+                    } else {
+                        if (Integer.parseInt(tfLength.getText()) > Integer.parseInt(mapDataType.get(cbDataType.getValue().toString()))) {
+                            errors.add("Length tipe data " + cbDataType.getValue().toString() + " tidak boleh lebih dari " + mapDataType.get(cbDataType.getValue().toString()) + "!");
+                        }
                     }
+
                 }
             }
         }
@@ -655,7 +665,7 @@ public class UtamaController implements Initializable {
                 }
             } else {
                 items.add(new Attribute(
-                        items.size() + 1,
+                        0,
                         tfField.getText(),
                         cbDataType.getValue().toString(),
                         tfLength.getText(),
@@ -677,7 +687,7 @@ public class UtamaController implements Initializable {
     //fungsi ini untuk meload daftar value tipe data yang digunakan
     private void loadDataType() {
         mapDataType.put("Boolean", "1");
-        mapDataType.put("String", "4294967295");
+        mapDataType.put("String", "65535");
         mapDataType.put("Integer", "11");
         mapDataType.put("Double", "18");
         mapDataType.put("Date", "10");
@@ -694,7 +704,7 @@ public class UtamaController implements Initializable {
     //fungsi ini untuk store data dictionary dan atributnya ke database
     private void write() throws Exception {
 //====================================DATA DICTIONARY======================================================        
-        DataDictonary dataDict = new DataDictonary();
+
         DataDictonary newDataDictonary = new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(), cbDocumentType.getValue().toString(),
                 tfKode.getText(), tfNamaProses.getText(), tfAktivitas.getText(),
                 tfAktor.getText(), tfRelasi.getText(), tfDeskripsi.getText(),
@@ -703,7 +713,7 @@ public class UtamaController implements Initializable {
         int flagDD = 0;
         if (dataDictionaryDao.getAllDataDictonaries().isEmpty()) {
             newDataDictonary.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-            dataDict = dataDictionaryDao.saveDataDictonary(newDataDictonary);
+            dataDictionaryDao.saveDataDictonary(newDataDictonary);
         } else {
             for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
                 if (dataDictonary.getDataDictionaryCode().equals(tfKodeDataDictionary.getText())) {
@@ -735,31 +745,41 @@ public class UtamaController implements Initializable {
                     } else {
                         newDataDictonary.setCreatedAt(dataDictonary.getCreatedAt());
                         newDataDictonary.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-                        dataDict = dataDictionaryDao.updateDataDictonary(newDataDictonary);
+                        dataDictionaryDao.updateDataDictonary(newDataDictonary);
                         break;
                     }
                 }
             }
             if (flagDD == 0) {
                 newDataDictonary.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-                dataDict = dataDictionaryDao.saveDataDictonary(newDataDictonary);
+                dataDictionaryDao.saveDataDictonary(newDataDictonary);
             }
         }
 
+        int idDataDictionary = 0;
+        for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
+            if (dataDictonary.getDataDictionaryCode().equalsIgnoreCase(tfKodeDataDictionary.getText())) {
+                idDataDictionary = dataDictonary.getId();
+            }
+        }
+        int id = idDataDictionary;
 //===========================================ATTRIBUTE======================================================        
-        ArrayList<Attribute> attributes = (ArrayList<Attribute>) attributeDao.getAllAttributes();
 
         ArrayList<Attribute> listIdAttributes = new ArrayList();
+        Map<Integer, Integer> mapAtribute = new HashMap<>();
 
         for (DataDictionaryAttribute dda : dataDictonaryAttibuteDao.getAllDataDictionaryAttributes()) {
-            if (dda.getDataDictionaryId() == dataDict.getId()) {
+            if (dda.getDataDictionaryId() == id) {
                 listIdAttributes.add(attributeDao.getAttribute(dda.getAttributeId()));
+                mapAtribute.put(dda.getAttributeId(), dda.getAttributeId());
+                System.out.println(dda.getAttributeId());
             }
         }
+
         if (listIdAttributes.isEmpty()) {
             items.forEach((item) -> {
                 int flag = 0;
-                for (Attribute attribute : attributes) {
+                for (Attribute attribute : attributeDao.getAllAttributes()) {
                     if (attribute.getAttributeName().equalsIgnoreCase(item.getAttributeName())) {
                         ArrayList<Integer> checkUpdated = new ArrayList();
                         if (!item.getAlias().equals(attribute.getAlias())) {
@@ -788,7 +808,7 @@ public class UtamaController implements Initializable {
                         flag++;
                     }
                 }
-                if (flag == attributes.size()) {
+                if (flag == attributeDao.getAllAttributes().size()) {
                     item.setId(0);
                     item.setCreatedAt(new Timestamp(System.currentTimeMillis()));
                     attributeDao.saveAttribute(item);
@@ -797,41 +817,40 @@ public class UtamaController implements Initializable {
             });
         } else {
             items.forEach((item) -> {
-                item.setCreatedAt(item.getCreatedAt());
-                item.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-                attributeDao.updateAttribute(item);
+                System.out.println(item.getId());
+                if (mapAtribute.get(item.getId()) == null) {
+                    item.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+                    attributeDao.saveAttribute(item);
+                    for (Attribute attribute : attributeDao.getAllAttributes()) {
+                        if (attribute.getAttributeName().equals(item.getAttributeName())) {
+                            item.setId(attribute.getId());
+                        }
+                    }
+                } else {
+                    item.setCreatedAt(item.getCreatedAt());
+                    item.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+                    attributeDao.updateAttribute(item);
+                }
             });
         }
 
 //==========================================DD - A=========================================================
-        int idDataDictionary = 0;
-        for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
-            if (dataDictonary.getDataDictionaryCode().equalsIgnoreCase(tfKodeDataDictionary.getText())) {
-                idDataDictionary = dataDictonary.getId();
-            }
-        }
-
-        Map<Integer, Integer> listIdDD = new HashMap<>();
+        Map<String, Integer> listIdDD = new HashMap<>();
         dataDictonaryAttibuteDao.getAllDataDictionaryAttributes().forEach((list) -> {
-            listIdDD.put(list.getDataDictionaryId(), list.getDataDictionaryId());
+            if (list.getDataDictionaryId() == id) {
+                listIdDD.put(list.getAttributeId() + "#" + id, list.getDataDictionaryId());
+            }
         });
 
-        int id = idDataDictionary;
-        ArrayList<Attribute> currentAtributes = (ArrayList<Attribute>) attributeDao.getAllAttributes();
-        if (listIdDD.get(id) == null) {
-            if (listIdAttributes.isEmpty()) {
-                items.forEach((item) -> {
-                    for (Attribute attribute : currentAtributes) {
-                        if (item.getAttributeName().equalsIgnoreCase(attribute.getAttributeName())) {
-                            dataDictonaryAttibuteDao.saveDataDictionaryAttribute(
-                                    new DataDictionaryAttribute(0, id, attribute.getId(),
-                                            new Timestamp(System.currentTimeMillis()),
-                                            null));
-                        }
-                    }
-                });
+        for (Attribute item : items) {
+            if (listIdDD.get(item.getId() + "#" + id) == null) {
+                dataDictonaryAttibuteDao.saveDataDictionaryAttribute(
+                        new DataDictionaryAttribute(0, id, item.getId(),
+                                new Timestamp(System.currentTimeMillis()),
+                                null));
             }
         }
+
 //==================================================WORD=====================================================                
         try {
             msWordGenerate(id);
@@ -875,7 +894,6 @@ public class UtamaController implements Initializable {
             test.setContentText(message);
             test.showAndWait();
         } else {
-
             Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
             confirm.setTitle("Konfirmasi");
             confirm.setHeaderText("Klik OK untuk generate data dictionary");
@@ -889,7 +907,6 @@ public class UtamaController implements Initializable {
                 read();
 
                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                ArrayList<Attribute> generatedAttributes = new ArrayList();
 
                 JSONObject obj = new JSONObject();
                 obj.put("dataDictionaryCode", tfKodeDataDictionary.getText());
@@ -911,11 +928,6 @@ public class UtamaController implements Initializable {
                     obj2.put("description", item.getDescription());
                     obj2.put("alias", item.getAlias());
                     list.add(obj2);
-                    generatedAttributes.add(new Attribute(item.getId(), item.getAttributeName(), item.getDataType(),
-                            item.getLength(), item.getDescription(), item.getAlias(),
-                            item.getCreatedAt(),
-                            item.getUpdatedAt()));
-
                 });
                 obj.put("attributes", list);
                 String jsonStringss = gson.toJson(obj);
