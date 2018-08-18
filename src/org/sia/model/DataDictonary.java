@@ -28,8 +28,6 @@ public class DataDictonary {
     private String dataForm;
     @Column(name = "processCode")    
     private String processCode;
-    @Column(name = "processName")    
-    private String processName;
     @Column(name = "activity")    
     private String activity;
     @Column(name = "actor")    
@@ -46,13 +44,12 @@ public class DataDictonary {
     public DataDictonary() {
     }
 
-    public DataDictonary(int id, String dataDictionaryCode, String documentName, String dataForm, String processCode, String processName, String activity, String actor, String relation, String description, Date createdAt, Date updatedAt) {
+    public DataDictonary(int id, String dataDictionaryCode, String documentName, String dataForm, String processCode, String activity, String actor, String relation, String description, Date createdAt, Date updatedAt) {
         this.id = id;
         this.dataDictionaryCode = dataDictionaryCode;
         this.documentName = documentName;
         this.dataForm = dataForm;
         this.processCode = processCode;
-        this.processName = processName;
         this.activity = activity;
         this.actor = actor;
         this.relation = relation;
@@ -99,14 +96,6 @@ public class DataDictonary {
 
     public void setProcessCode(String processCode) {
         this.processCode = processCode;
-    }
-
-    public String getProcessName() {
-        return processName;
-    }
-
-    public void setProcessName(String processName) {
-        this.processName = processName;
     }
 
     public String getActivity() {

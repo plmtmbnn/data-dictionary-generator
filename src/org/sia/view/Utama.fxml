@@ -28,6 +28,7 @@
                                     <children> 
                                         <Button fx:id="loadFileXml" layoutX="30.0" layoutY="45.0" mnemonicParsing="false" onAction="#loadFileXml" prefHeight="25.0" prefWidth="178.0" text="Pilih File" />
                                         <ListView fx:id="listview" layoutX="19.0" layoutY="95.0" prefHeight="554.0" prefWidth="200.0" />
+                              <Button fx:id="btnLihatSemua" layoutX="19.0" layoutY="660.0" mnemonicParsing="false" onAction="#showAll" prefHeight="25.0" prefWidth="200.0" text="Semua Riwayat" />
                                     </children>
                                 </AnchorPane>
                                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="687.0" prefWidth="730.0">
@@ -52,20 +53,19 @@
                                                 <TextField fx:id="tfKodeDataDictionary" promptText="kode data dictionary" GridPane.columnIndex="1" />
                                                 <Label text="Nama Dokumen" GridPane.rowIndex="1" />
                                                 <TextField fx:id="tfDokumen" promptText="nama dokumen" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                                <Label text="Kode dan Nama Proses" GridPane.rowIndex="3" />
+                                                <Label text="Kode Proses" GridPane.rowIndex="3" />
                                                 <Label text="Aktivitas" GridPane.rowIndex="4" />
                                                 <Label text="Attribut" GridPane.rowIndex="7" />
                                                 <GridPane GridPane.columnIndex="1" GridPane.rowIndex="3">
                                                     <columnConstraints>
-                                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="245.0" minWidth="10.0" prefWidth="143.0" />
-                                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="325.0" minWidth="10.0" prefWidth="247.0" />
+                                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="463.0" minWidth="10.0" prefWidth="463.0" />
+                                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="325.0" minWidth="0.0" prefWidth="0.0" />
                                                     </columnConstraints>
                                                     <rowConstraints>
                                                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                                     </rowConstraints>
                                                     <children>
                                                         <TextField fx:id="tfKode" promptText="kode" />
-                                                        <TextField fx:id="tfNamaProses" prefHeight="25.0" prefWidth="293.0" promptText="nama process" GridPane.columnIndex="1" />
                                                     </children>
                                                 </GridPane>
                                                 <TextField fx:id="tfAktivitas" promptText="aktivitas" GridPane.columnIndex="1" GridPane.rowIndex="4" />

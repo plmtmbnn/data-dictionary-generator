@@ -71,7 +71,7 @@ import org.sia.model.DataDictionaryAttribute;
 public class UtamaController implements Initializable {
 
     @FXML
-    private Button btnFile, btnTambah, btnDelete, btnReset, btnGenerate;
+    private Button btnFile, btnTambah, btnDelete, btnReset, btnGenerate, btnLihatSemua;
     @FXML
     private ComboBox cbDataType, cbDocumentType;
     @FXML
@@ -79,7 +79,7 @@ public class UtamaController implements Initializable {
     @FXML
     private TableView<Attribute> tableViewDD;
     @FXML
-    private TextField tfLength, tfAlias, tfField, tfKode, tfNamaProses, tfAktivitas, tfDokumen, tfAktor, tfKodeDataDictionary, tfRelasi;
+    private TextField tfLength, tfAlias, tfField, tfKode, tfAktivitas, tfDokumen, tfAktor, tfKodeDataDictionary, tfRelasi;
     @FXML
     private TextArea taDescription, tfDeskripsi;
     @FXML
@@ -114,6 +114,7 @@ public class UtamaController implements Initializable {
     private String path = "";
     private String kodeProses = "";
     private String namaProses = "";
+    private boolean allFlag = false;
 
     //construct
     public UtamaController() {
@@ -127,6 +128,7 @@ public class UtamaController implements Initializable {
     @FXML
     private void loadFileXml(ActionEvent event) throws JAXBException {
         try {
+            allFlag = false;
             FileChooser fc = new FileChooser();
             fc.setInitialDirectory(new File("D:\\12S14026_POLMA\\Semester 8\\TA 2\\data dictionary"));
             fc.getExtensionFilters().addAll(new ExtensionFilter("xml file", "*.xpdl"));
@@ -229,7 +231,7 @@ public class UtamaController implements Initializable {
                     mapDataObjectCoordinate.clear();
                     mapActorCoordinate.clear();
                     listDataObject.clear();
-                    int num = 1;
+                    int num = dataDictionaryDao.getAllDataDictonaries().size()+1;
                     for (int temp = 0; temp < nListCoordinates.getLength(); temp++) {
                         Node nNode = nListCoordinates.item(temp);
                         String name, id;
@@ -251,8 +253,7 @@ public class UtamaController implements Initializable {
                                 }
                                 mapDataObject.put(id, name);
                                 listDataObject.add(name);
-                                String code[] = splits[0].split("BP-");
-                                String codeDD = "DD-" + code[1] + "-" + String.format("%03d", num);
+                                String codeDD = "DD-DDiak" + "-" + String.format("%03d", num);
                                 mapCodeDD.put(name, codeDD);
                                 num++;
                             }
@@ -364,6 +365,21 @@ public class UtamaController implements Initializable {
         }
     }
 
+    //fungsi ini untuk meload semua riwayat data dictionary
+    @FXML
+    private void showAll() {
+        allFlag = true;
+        mapCodeDD.clear();
+        listview.getItems().clear();
+        listDataObject.clear();
+        for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
+            listDataObject.add(dataDictonary.getDocumentName());
+            mapCodeDD.put(dataDictonary.getDocumentName(), dataDictonary.getDataDictionaryCode());
+        }
+        loadListView(listDataObject);
+        read();
+    }
+
     //fungsi ini untuk meload list data object yang ditemukan
     private void loadListView(ArrayList<String> datas) {
         datas.forEach((newItem) -> {
@@ -374,8 +390,6 @@ public class UtamaController implements Initializable {
     //fungsi ini untuk meread apakah data yang sudah pernah distore di database atau tidak
     private void read() {
         storedItems.clear();
-//        mapStoredAttributes.clear();
-
         DataDictonary availabledataDictionary = null;
         for (DataDictonary dataDictonary : dataDictionaryDao.getAllDataDictonaries()) {
             if (tfKodeDataDictionary.getText().equalsIgnoreCase(dataDictonary.getDataDictionaryCode())) {
@@ -403,105 +417,108 @@ public class UtamaController implements Initializable {
     //fungsi ini untuk menggenerate data dictionary kebentuk word
     private void msWordGenerate(int id) throws Exception {
         XWPFDocument document = new XWPFDocument();
-        try (FileOutputStream out = new FileOutputStream(new File(path + tfKodeDataDictionary.getText() + ".docx"))) {
-            DataDictonary dataDictionary = dataDictionaryDao.getAttribute(id);
+        DataDictonary dataDictionary = dataDictionaryDao.getAttribute(id);
 
-            XWPFParagraph paragraph = document.createParagraph();
-            XWPFRun run = paragraph.createRun();
-            run.addBreak();
-            run.setText("Kode Data Dictionary");
-            run.addTab();
-            run.setText(": " + dataDictionary.getDataDictionaryCode());
-            run.addBreak();
-            run.setText("Nama Dokumen");
-            run.addTab();
-            run.setText(": " + dataDictionary.getDocumentName());
-            run.addBreak();
-            run.setText("Bentuk Data");
-            run.addTab();
-            run.addTab();
-            run.setText(": " + dataDictionary.getDataForm());
-            run.addBreak();
-            run.setText("Kode Proses");
-            run.addTab();
-            run.addTab();
-            run.setText(": " + dataDictionary.getProcessCode());
-            run.addBreak();
-            run.setText("Nama Proses");
-            run.addTab();
-            run.addTab();
-            run.setText(": " + dataDictionary.getProcessName());
-            run.addBreak();
-            run.setText("Aktivitas");
-            run.addTab();
-            run.addTab();
-            run.setText(": " + dataDictionary.getActivity());
-            run.addBreak();
-            run.setText("Aktor");
-            run.addTab();
-            run.addTab();
-            run.addTab();
-            run.setText(": " + dataDictionary.getActor());
-            run.addBreak();
-            run.setText("Relasi");
-            run.addTab();
-            run.addTab();
-            run.addTab();
-            run.setText(": " + dataDictionary.getRelation());
-            run.addBreak();
-            run.setText("Atribut");
-            run.addTab();
-            run.addTab();
-            run.addTab();
-            run.setText("");
+        XWPFParagraph paragraph = document.createParagraph();
+        XWPFRun run = paragraph.createRun();
+        run.addBreak();
+        run.setText("Kode Data Dictionary");
+        run.addTab();
+        run.setText(": " + dataDictionary.getDataDictionaryCode());
+        run.addBreak();
+        run.setText("Nama Dokumen");
+        run.addTab();
+        run.setText(": " + dataDictionary.getDocumentName());
+        run.addBreak();
+        run.setText("Bentuk Data");
+        run.addTab();
+        run.addTab();
+        run.setText(": " + dataDictionary.getDataForm());
+        run.addBreak();
+        run.setText("Kode Proses");
+        run.addTab();
+        run.addTab();
+        run.setText(": " + dataDictionary.getProcessCode());
+        run.addBreak();
+        run.setText("Aktivitas");
+        run.addTab();
+        run.addTab();
+        run.setText(": " + dataDictionary.getActivity());
+        run.addBreak();
+        run.setText("Aktor");
+        run.addTab();
+        run.addTab();
+        run.addTab();
+        run.setText(": " + dataDictionary.getActor());
+        run.addBreak();
+        run.setText("Relasi");
+        run.addTab();
+        run.addTab();
+        run.addTab();
+        run.setText(": " + dataDictionary.getRelation());
+        run.addBreak();
+        run.setText("Atribut");
+        run.addTab();
+        run.addTab();
+        run.addTab();
+        run.setText("");
 
-            XWPFTable table = document.createTable();
+        XWPFTable table = document.createTable();
 
-            XWPFTableRow tableRowOne = table.getRow(0);
-            tableRowOne.getCell(0).setText("Nama Atribut");
-            tableRowOne.addNewTableCell().setText("Alias");
-            tableRowOne.addNewTableCell().setText("Data Type");
-            tableRowOne.addNewTableCell().setText("Length");
-            tableRowOne.addNewTableCell().setText("Description");
+        XWPFTableRow tableRowOne = table.getRow(0);
+        tableRowOne.getCell(0).setText("Nama Atribut");
+        tableRowOne.addNewTableCell().setText("Alias");
+        tableRowOne.addNewTableCell().setText("Data Type");
+        tableRowOne.addNewTableCell().setText("Length");
+        tableRowOne.addNewTableCell().setText("Description");
 
-            dataDictonaryAttibuteDao.getAllDataDictionaryAttributes().stream().filter((allDataDictionaryAttribute)
-                    -> (allDataDictionaryAttribute.getDataDictionaryId() == id)).forEachOrdered((allDataDictionaryAttribute) -> {
-                XWPFTableRow tableRows = table.createRow();
-                tableRows.getCell(0).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getAttributeName());
-                tableRows.getCell(1).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getAlias());
-                tableRows.getCell(2).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getDataType());
-                tableRows.getCell(3).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getLength());
-                tableRows.getCell(4).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getDescription());
-            });
+        dataDictonaryAttibuteDao.getAllDataDictionaryAttributes().stream().filter((allDataDictionaryAttribute)
+                -> (allDataDictionaryAttribute.getDataDictionaryId() == id)).forEachOrdered((allDataDictionaryAttribute) -> {
+            XWPFTableRow tableRows = table.createRow();
+            tableRows.getCell(0).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getAttributeName());
+            tableRows.getCell(1).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getAlias());
+            tableRows.getCell(2).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getDataType());
+            tableRows.getCell(3).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getLength());
+            tableRows.getCell(4).setText(attributeDao.getAttribute(allDataDictionaryAttribute.getAttributeId()).getDescription());
+        });
 
-            run.setText(table.getText());
+        run.setText(table.getText());
 
-            XWPFParagraph paragraph2 = document.createParagraph();
-            XWPFRun run2 = paragraph2.createRun();
+        XWPFParagraph paragraph2 = document.createParagraph();
+        XWPFRun run2 = paragraph2.createRun();
 
-            run2.setText("Deskripsi");
-            run2.addTab();
-            run2.addTab();
-            run2.setText(": " + dataDictionary.getDescription());
-            run2.addBreak();
+        run2.setText("Deskripsi");
+        run2.addTab();
+        run2.addTab();
+        run2.setText(": " + dataDictionary.getDescription());
+        run2.addBreak();
 
-            document.write(out);
+        try {
+            String newPath = "D:\\12S14026_POLMA\\Semester 8\\TA 2\\data dictionary\\";
+            if (allFlag == true) {
+                FileOutputStream out = new FileOutputStream(new File(newPath + tfKodeDataDictionary.getText() + ".docx"));
+                document.write(out);
+            } else {
+                FileOutputStream out = new FileOutputStream(new File(path + tfKodeDataDictionary.getText() + ".docx"));
+                document.write(out);
+            }
+            System.out.println("Data dictionary berhasil digenerate dalam bentuk word!");
+        } catch (Exception e) {
         }
-        System.out.println("Data dictionary berhasil digenerate dalam bentuk word!");
+
     }
 
     //fungsi ini untuk meload detail atribut berdasarkan data object yang diklik pada list data object
     private void loadAttributesBaseOnDataObject(DataDictonary dataDictionary, String newValue) {
         items.clear();
-        String[] split = mapDeskripsi.get(newValue).split("#");
         if (dataDictionary != null) {
             for (DataDictionaryAttribute dda : dataDictonaryAttibuteDao.getAllDataDictionaryAttributes()) {
                 if (dda.getDataDictionaryId() == dataDictionary.getId()) {
                     items.add(attributeDao.getAttribute(dda.getAttributeId()));
-                    System.out.println(attributeDao.getAttribute(dda.getAttributeId()));
                 }
             }
         } else {
+            String[] split = mapDeskripsi.get(newValue).split("#");
             for (int i = 0; i < split.length; i++) {
                 if (i == 0) {
                 } else {
@@ -544,7 +561,6 @@ public class UtamaController implements Initializable {
                             tfKodeDataDictionary.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getDataDictionaryCode());
                             tfKode.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getProcessCode());
                             tfRelasi.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getRelation());
-                            tfNamaProses.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getProcessName());
                             tfDeskripsi.setText(mapDataDictionary.get(mapCodeDD.get(newValue)).getDescription());
                             if (newValue != null) {
                                 loadAttributesBaseOnDataObject(mapDataDictionary.get(mapCodeDD.get(newValue)), newValue);
@@ -555,7 +571,6 @@ public class UtamaController implements Initializable {
                             tfAktor.setText(mapActor.get(newValue));
                             tfKodeDataDictionary.setText(mapCodeDD.get(newValue));
                             tfKode.setText(kodeProses);
-                            tfNamaProses.setText(namaProses);
                             if (newValue != null) {
                                 loadAttributesBaseOnDataObject(mapDataDictionary.get(mapCodeDD.get(newValue)), newValue);
                             }
@@ -599,7 +614,8 @@ public class UtamaController implements Initializable {
     @FXML
     private void addUpdateAtrributes(ActionEvent event) {
         ArrayList<String> errors = new ArrayList<>();
-        if (tfField.getText().isEmpty()) {
+        
+        /*if (tfField.getText().isEmpty()) {
             errors.add("Nama atribut tidak boleh kosong!");
         }
         if (cbDataType.getSelectionModel().isEmpty()) {
@@ -626,7 +642,8 @@ public class UtamaController implements Initializable {
                 }
             }
         }
-
+*/
+        
         if (errors.size() > 0) {
             Alert test = new Alert(Alert.AlertType.WARNING);
             test.setTitle("Peringatan");
@@ -687,11 +704,11 @@ public class UtamaController implements Initializable {
     //fungsi ini untuk meload daftar value tipe data yang digunakan
     private void loadDataType() {
         mapDataType.put("Boolean", "1");
-        mapDataType.put("String", "65535");
+        mapDataType.put("String", "255");
         mapDataType.put("Integer", "11");
         mapDataType.put("Double", "18");
         mapDataType.put("Date", "10");
-        mapDataType.put("Currency", "15");
+        mapDataType.put("Currency", "14");
 
         for (Map.Entry<String, String> entry2 : mapDataType.entrySet()) {
             options.add(entry2.getKey());
@@ -706,7 +723,7 @@ public class UtamaController implements Initializable {
 //====================================DATA DICTIONARY======================================================        
 
         DataDictonary newDataDictonary = new DataDictonary(0, tfKodeDataDictionary.getText(), tfDokumen.getText(), cbDocumentType.getValue().toString(),
-                tfKode.getText(), tfNamaProses.getText(), tfAktivitas.getText(),
+                tfKode.getText(), tfAktivitas.getText(),
                 tfAktor.getText(), tfRelasi.getText(), tfDeskripsi.getText(),
                 null,
                 null);
@@ -736,9 +753,6 @@ public class UtamaController implements Initializable {
                         checkUpdated.add(1);
                     }
                     if (!dataDictonary.getProcessCode().equals(newDataDictonary.getProcessCode())) {
-                        checkUpdated.add(1);
-                    }
-                    if (!dataDictonary.getProcessName().equals(newDataDictonary.getProcessName())) {
                         checkUpdated.add(1);
                     }
                     if (checkUpdated.isEmpty()) {
@@ -870,9 +884,6 @@ public class UtamaController implements Initializable {
         if (tfKode.getText().equalsIgnoreCase("")) {
             errors.add("Kolom kode tidak boleh kosong");
         }
-        if (tfNamaProses.getText().equalsIgnoreCase("")) {
-            errors.add("Kolom nama proses tidak boleh kosong");
-        }
         if (tfAktivitas.getText().equalsIgnoreCase("")) {
             errors.add("Kolom aktivitas tidak boleh kosong");
         }
@@ -913,7 +924,6 @@ public class UtamaController implements Initializable {
                 obj.put("documentName", tfDokumen.getText());
                 obj.put("dataForm", cbDocumentType.getValue().toString());
                 obj.put("processCode", tfKode.getText());
-                obj.put("processName", tfNamaProses.getText());
                 obj.put("activity", tfAktivitas.getText());
                 obj.put("actor", tfAktor.getText());
                 obj.put("relation", tfRelasi.getText());
@@ -933,11 +943,19 @@ public class UtamaController implements Initializable {
                 String jsonStringss = gson.toJson(obj);
 
                 System.out.print(jsonStringss);
-
-                try (FileWriter file = new FileWriter(path + tfKodeDataDictionary.getText() + ".json")) {
-                    file.write(jsonStringss);
-                    file.flush();
-                } catch (IOException e) {
+                String newPath = "D:\\12S14026_POLMA\\Semester 8\\TA 2\\data dictionary\\";
+                if (allFlag == true) {
+                    try (FileWriter file = new FileWriter(newPath + tfKodeDataDictionary.getText() + ".json")) {
+                        file.write(jsonStringss);
+                        file.flush();
+                    } catch (IOException e) {
+                    }
+                } else {
+                    try (FileWriter file = new FileWriter(path + tfKodeDataDictionary.getText() + ".json")) {
+                        file.write(jsonStringss);
+                        file.flush();
+                    } catch (IOException e) {
+                    }
                 }
 
                 reset();
@@ -947,7 +965,6 @@ public class UtamaController implements Initializable {
                 tfAktor.clear();
                 tfKode.clear();
                 tfKodeDataDictionary.clear();
-                tfNamaProses.clear();
                 tfDokumen.clear();
 
                 Alert test = new Alert(Alert.AlertType.INFORMATION);
